@@ -26,18 +26,29 @@ export default function SentirPage() {
       'qualquer coisa',
       'bom',
       'ruim',
+      'não sei',
+      'nada',
+      'vender mais',
+      'crescer',
+      'mais lucro',
+      'melhorar o sistema',
+      'arrumar tudo',
     ]
     const textToAnalyze = `${fato} ${dor} ${desejo}`.toLowerCase()
 
     if (genericTerms.some((term) => textToAnalyze.includes(term))) {
-      setError(
-        'Seja mais específico para gerar resultados SMART. Evite termos genéricos como "melhorar tudo" ou "fazer mais".',
-      )
+      setError('Seja mais específico para gerar resultados SMART. Evite termos genéricos.')
       return false
     }
 
-    if (fato.length < 5 || dor.length < 5 || desejo.length < 5) {
-      setError('Preencha todos os campos com contexto suficiente.')
+    if (
+      fato.trim().split(/\s+/).length < 3 ||
+      dor.trim().split(/\s+/).length < 3 ||
+      desejo.trim().split(/\s+/).length < 3
+    ) {
+      setError(
+        'Por favor, seja mais descritivo. Use pelo menos 3 palavras em cada campo para dar contexto suficiente ao motor de IA.',
+      )
       return false
     }
 

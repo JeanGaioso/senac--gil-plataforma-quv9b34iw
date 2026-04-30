@@ -19,8 +19,13 @@ export default function EstruturarPage() {
 
   useEffect(() => {
     if (!goldenTask && session.fato && session.dor && session.desejo) {
-      // AI Engine Simulation
-      const generated = `Ação: Focar em "${session.desejo}"\nObjeto: Mitigar "${session.dor}"\nContexto: Considerando "${session.fato}"\nPrazo: 30 dias com métrica definida.`
+      // Advanced Golden Task Engine Simulation
+      // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo]
+      const firstActionWord = session.desejo.trim().split(' ')[0] || 'Resolver'
+      const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
+      const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
+
+      const generated = `${actionCapitalized} o impacto de "${objetoStr}" com uma melhoria de 25% até o final da próxima semana.`
       setGoldenTask(generated)
     }
   }, [goldenTask, session])
@@ -95,15 +100,19 @@ export default function EstruturarPage() {
           />
         </div>
 
-        <div className="pt-4 flex justify-between border-t">
-          <Button variant="outline" onClick={handleBack}>
+        <div className="pt-4 flex flex-col sm:flex-row justify-between gap-4 border-t">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="text-[#004a8d] border-[#004a8d] hover:bg-[#004a8d] hover:text-white transition-colors"
+          >
             <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
           </Button>
           <Button
             onClick={handleNext}
             disabled={!pontosFortes || !kpis}
             size="lg"
-            className="hover:scale-105 transition-transform"
+            className="hover:scale-105 transition-transform w-full sm:w-auto"
           >
             Avançar para Escalar
             <ArrowRight className="ml-2 w-4 h-4" />
