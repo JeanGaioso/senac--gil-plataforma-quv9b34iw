@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
+import { updateConsultancy } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -60,7 +61,17 @@ export default function EscalarPage() {
     }
   }
 
-  const proceedToFinish = () => {
+  const proceedToFinish = async () => {
+    if (session.consultancyId) {
+      try {
+        await updateConsultancy(session.consultancyId, {
+          escalar_data: { microTarefa },
+          status: 'completed',
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
     updateSession({ microTarefa })
     finishSession()
     navigate('/resumo')

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
+import { updateConsultancy } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -19,17 +20,26 @@ export default function EstruturarPage() {
 
   const handleGenerateAI = () => {
     // Advanced Golden Task Engine Simulation (SMART)
-    // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo] in a single sentence
-    const firstActionWord = session.desejo.trim().split(' ')[0] || 'Resolver'
+    const firstActionWord = session.desejo.trim().split(' ')[0] || 'Aumentar'
     const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
-    const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
+    const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o resultado esperado'
 
-    const generated = `${actionCapitalized} ${objetoStr} em 25% até o final da próxima semana.`
+    const generated = `${actionCapitalized} ${objetoStr} em 20% através da implementação de ações estruturadas nos próximos 30 dias.`
     setGoldenTask(generated)
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (pontosFortes && kpis) {
+      if (session.consultancyId) {
+        try {
+          await updateConsultancy(session.consultancyId, {
+            estruturar_data: { pontosFortes, riscos, kpis },
+            tarefa_ouro: goldenTask,
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      }
       updateSession({ goldenTask, pontosFortes, riscos, kpis })
       navigate('/escalar')
     }

@@ -1,8 +1,16 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Timer, CheckCircle2, Circle } from 'lucide-react'
+import { Timer, CheckCircle2, Circle, ChevronDown, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/use-session-store'
+import { useAuth } from '@/hooks/use-auth'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 
 const TimerDisplay = () => {
   const { session, finishSession } = useSessionStore()
@@ -53,6 +61,7 @@ const TimerDisplay = () => {
 
 export default function Layout() {
   const { session } = useSessionStore()
+  const { user, signOut } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -79,7 +88,24 @@ export default function Layout() {
             </div>
             <span className="text-xl font-bold text-primary">Senac-Ágil</span>
           </div>
-          <TimerDisplay />
+          <div className="flex items-center gap-4">
+            <TimerDisplay />
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="hidden sm:flex gap-2">
+                    <span className="max-w-[120px] truncate">{user.name || user.email}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="w-4 h-4 mr-2" /> Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </header>
 

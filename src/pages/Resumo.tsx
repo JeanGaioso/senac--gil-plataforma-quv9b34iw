@@ -28,28 +28,28 @@ export default function ResumoPage() {
       <meta charset='utf-8'>
       <title>Senac-Ágil Canvas</title>
       <style>
-        @page { size: A4; margin: 1.5cm; }
-        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.3; margin: 0; padding: 0; font-size: 11pt; }
-        .header-bg { background-color: #004BB5; color: #ffffff; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
-        .header-bg h1 { margin: 0; color: #ffffff; font-size: 18px; text-transform: uppercase; }
-        .header-bg p { margin: 2px 0 0 0; color: #ffffff; font-size: 12px; opacity: 0.9; }
+        @page { size: A4; margin: 1cm; }
+        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.2; margin: 0; padding: 0; font-size: 10pt; }
+        .header-bg { background-color: #004BB5; color: #ffffff; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .header-bg h1 { margin: 0; color: #ffffff; font-size: 16px; text-transform: uppercase; }
+        .header-bg p { margin: 2px 0 0 0; color: #ffffff; font-size: 11px; opacity: 0.9; }
         h1, h2, h3, h4 { color: #004BB5; margin-top: 0; margin-bottom: 4px; }
         .text-secondary { color: #F7941E !important; }
-        .bg-secondary { background-color: #F7941E; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 12px; margin-right: 6px; }
-        .bg-primary { background-color: #004BB5; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 12px; margin-right: 6px; }
-        .section { margin-bottom: 12px; }
-        .section h2 { font-size: 14px; margin-bottom: 8px; }
-        .grid { display: table; width: 100%; table-layout: fixed; margin-bottom: 8px; }
-        .col { display: table-cell; padding-right: 12px; vertical-align: top; width: 33%; }
-        .col h4 { font-size: 12px; margin-bottom: 2px; }
-        .col p { font-size: 11pt; margin-top: 0; margin-bottom: 0; }
-        .box { background-color: #f4f8fb; padding: 10px; border-left: 3px solid #004BB5; margin: 8px 0; border-radius: 0 6px 6px 0; }
-        .box h3 { font-size: 13px; margin-bottom: 4px; }
-        .box p { font-size: 11pt; margin: 0; font-weight: bold; }
-        .box-secondary { background-color: #fff6e8; padding: 10px; border-left: 3px solid #F7941E; margin: 8px 0; border-radius: 0 6px 6px 0; }
-        .box-secondary h3 { font-size: 13px; margin-bottom: 4px; }
-        .box-secondary p { font-size: 11pt; margin: 0; font-weight: bold; }
-        hr { border: 0; border-bottom: 1px solid rgba(0,75,181,0.2); margin: 12px 0; }
+        .bg-secondary { background-color: #F7941E; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-right: 6px; }
+        .bg-primary { background-color: #004BB5; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-right: 6px; }
+        .section { margin-bottom: 10px; }
+        .section h2 { font-size: 13px; margin-bottom: 6px; }
+        .grid { display: table; width: 100%; table-layout: fixed; margin-bottom: 6px; }
+        .col { display: table-cell; padding-right: 10px; vertical-align: top; width: 33%; }
+        .col h4 { font-size: 11px; margin-bottom: 2px; }
+        .col p { font-size: 10pt; margin-top: 0; margin-bottom: 0; }
+        .box { background-color: #f4f8fb; padding: 8px; border-left: 3px solid #004BB5; margin: 6px 0; border-radius: 0 6px 6px 0; }
+        .box h3 { font-size: 12px; margin-bottom: 4px; }
+        .box p { font-size: 10pt; margin: 0; font-weight: bold; }
+        .box-secondary { background-color: #fff6e8; padding: 8px; border-left: 3px solid #F7941E; margin: 6px 0; border-radius: 0 6px 6px 0; }
+        .box-secondary h3 { font-size: 12px; margin-bottom: 4px; }
+        .box-secondary p { font-size: 10pt; margin: 0; font-weight: bold; }
+        hr { border: 0; border-bottom: 1px solid rgba(0,75,181,0.2); margin: 10px 0; }
       </style>
     </head><body>`
 
@@ -59,7 +59,7 @@ export default function ResumoPage() {
       <div class="header-bg">
         <h1>Canvas Senac-Ágil</h1>
         <p>Metodologia Sentir, Estruturar, Escalar</p>
-        <div style="margin-top: 8px; font-size: 11px;">
+        <div style="margin-top: 6px; font-size: 10px;">
           <p style="margin: 0;"><strong>Cliente:</strong> ${session.clientName || 'Não informado'} | <strong>Consultor:</strong> ${session.consultantName || 'Não informado'} | <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
         </div>
       </div>
@@ -137,11 +137,11 @@ export default function ResumoPage() {
     content: string
     icon: any
   }) => (
-    <div className="space-y-1 print:space-y-0.5">
-      <h3 className="font-bold text-primary flex items-center gap-1.5 border-b border-primary/20 pb-0.5 text-sm print:text-xs">
-        <Icon className="w-3.5 h-3.5 text-secondary" /> {title}
+    <div className="space-y-1 print:space-y-0.5 print-section">
+      <h3 className="font-bold text-primary flex items-center gap-1.5 border-b border-primary/20 pb-0.5 text-sm print:text-[11px]">
+        <Icon className="w-3.5 h-3.5 text-secondary print:w-3 print:h-3" /> {title}
       </h3>
-      <p className="text-sm print:text-xs text-gray-700 whitespace-pre-wrap leading-tight">
+      <p className="text-sm print:text-[10px] text-gray-700 whitespace-pre-wrap leading-tight print-text">
         {content || 'Não preenchido'}
       </p>
     </div>
@@ -152,11 +152,14 @@ export default function ResumoPage() {
       <style>{`
         @media print {
           @page { size: A4; margin: 1cm; }
-          body { font-size: 12pt; background-color: white !important; }
+          body { font-size: 10pt; background-color: white !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .print-container { padding: 0 !important; margin: 0 !important; }
+          .print-card { box-shadow: none !important; border: none !important; margin: 0 !important; }
+          .print-header { padding: 0.5rem 0.75rem !important; }
         }
       `}</style>
-      <div className="space-y-6 animate-fade-in print:m-0 w-full print:p-0 print:space-y-4">
+      <div className="space-y-6 animate-fade-in print-container print:space-y-3 w-full">
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 print:hidden mb-6">
           <div>
             <h1 className="text-3xl font-bold text-primary">Intervenção Concluída</h1>
@@ -195,18 +198,18 @@ export default function ResumoPage() {
           </div>
         </div>
 
-        <Card className="w-full bg-white shadow-xl print:shadow-none print:border-none rounded-xl overflow-hidden border-2 border-primary/10">
-          <div className="bg-primary text-white p-5 print:p-4 flex justify-between items-end">
+        <Card className="w-full bg-white shadow-xl print-card rounded-xl overflow-hidden border-2 border-primary/10">
+          <div className="bg-primary text-white p-5 print-header flex justify-between items-end">
             <div>
-              <h2 className="text-2xl print:text-xl font-bold tracking-tight uppercase flex items-center gap-2">
-                <span className="w-1.5 h-6 print:h-5 bg-secondary rounded-full inline-block mr-1"></span>
+              <h2 className="text-2xl print:text-lg font-bold tracking-tight uppercase flex items-center gap-2">
+                <span className="w-1.5 h-6 print:h-4 bg-secondary rounded-full inline-block mr-1"></span>
                 Canvas Senac-Ágil
               </h2>
-              <p className="opacity-90 mt-1 pl-3.5 print:text-xs text-sm">
+              <p className="opacity-90 mt-1 pl-3.5 print:text-[10px] text-sm">
                 Metodologia Sentir, Estruturar, Escalar
               </p>
             </div>
-            <div className="text-right text-sm print:text-[10px] opacity-90 leading-tight">
+            <div className="text-right text-sm print:text-[9px] opacity-90 leading-tight">
               <p>
                 <strong>Cliente:</strong> {session.clientName || 'Não informado'}
               </p>
@@ -219,59 +222,60 @@ export default function ResumoPage() {
             </div>
           </div>
 
-          <CardContent className="p-6 print:p-4 space-y-6 print:space-y-4">
+          <CardContent className="p-6 print:p-3 space-y-6 print:space-y-3">
             <div>
-              <h3 className="text-lg print:text-base font-bold text-primary mb-3 flex items-center gap-2">
-                <span className="bg-primary text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">
+              <h3 className="text-lg print:text-sm font-bold text-primary mb-3 print:mb-2 flex items-center gap-2">
+                <span className="bg-primary text-white w-5 h-5 print:w-4 print:h-4 rounded-full inline-flex items-center justify-center text-xs print:text-[10px]">
                   1
                 </span>
                 Sentir (Diagnóstico)
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-3">
                 <Section title="Fato" content={session.fato} icon={FileText} />
                 <Section title="Dor" content={session.dor} icon={FileText} />
                 <Section title="Desejo" content={session.desejo} icon={FileText} />
               </div>
             </div>
 
-            <Separator className="bg-primary/20 print:my-2" />
+            <Separator className="bg-primary/20 print:my-1" />
 
             <div>
-              <h3 className="text-lg print:text-base font-bold text-primary mb-3 flex items-center gap-2">
-                <span className="bg-primary text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">
+              <h3 className="text-lg print:text-sm font-bold text-primary mb-3 print:mb-2 flex items-center gap-2">
+                <span className="bg-primary text-white w-5 h-5 print:w-4 print:h-4 rounded-full inline-flex items-center justify-center text-xs print:text-[10px]">
                   2
                 </span>
                 Estruturar (Estratégia)
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-3 mb-4 print:mb-2">
                 <Section title="Pontos Fortes" content={session.pontosFortes} icon={CheckCircle} />
                 <Section title="Riscos" content={session.riscos} icon={CheckCircle} />
                 <Section title="KPIs (Métricas)" content={session.kpis} icon={CheckCircle} />
               </div>
-              <div className="bg-primary/5 rounded-lg p-4 print:p-3 border-l-4 border-primary">
-                <h4 className="text-base print:text-sm font-bold text-primary flex items-center gap-2 mb-1.5">
-                  <Briefcase className="w-4 h-4 text-secondary" /> Tarefa de Ouro
+              <div className="bg-primary/5 rounded-lg p-4 print:p-2.5 border-l-4 border-primary">
+                <h4 className="text-base print:text-[12px] font-bold text-primary flex items-center gap-2 mb-1.5 print:mb-1">
+                  <Briefcase className="w-4 h-4 print:w-3 print:h-3 text-secondary" /> Tarefa de
+                  Ouro
                 </h4>
-                <p className="text-sm print:text-xs text-gray-800 font-medium whitespace-pre-wrap leading-tight">
+                <p className="text-sm print:text-[11px] text-gray-800 font-medium whitespace-pre-wrap leading-tight">
                   {session.goldenTask || 'Não preenchido'}
                 </p>
               </div>
             </div>
 
-            <Separator className="bg-primary/20 print:my-2" />
+            <Separator className="bg-primary/20 print:my-1" />
 
             <div>
-              <h3 className="text-lg print:text-base font-bold text-secondary mb-3 flex items-center gap-2">
-                <span className="bg-secondary text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-xs">
+              <h3 className="text-lg print:text-sm font-bold text-secondary mb-3 print:mb-2 flex items-center gap-2">
+                <span className="bg-secondary text-white w-5 h-5 print:w-4 print:h-4 rounded-full inline-flex items-center justify-center text-xs print:text-[10px]">
                   3
                 </span>
                 Escalar (Execução)
               </h3>
-              <div className="bg-secondary/10 rounded-lg p-4 print:p-3 border-l-4 border-secondary">
-                <h4 className="text-base print:text-sm font-bold text-secondary flex items-center gap-2 mb-1.5">
-                  <RefreshCcw className="w-4 h-4" /> Micro-Tarefa 24h
+              <div className="bg-secondary/10 rounded-lg p-4 print:p-2.5 border-l-4 border-secondary">
+                <h4 className="text-base print:text-[12px] font-bold text-secondary flex items-center gap-2 mb-1.5 print:mb-1">
+                  <RefreshCcw className="w-4 h-4 print:w-3 print:h-3" /> Micro-Tarefa 24h
                 </h4>
-                <p className="text-sm print:text-xs text-gray-900 font-bold whitespace-pre-wrap leading-tight">
+                <p className="text-sm print:text-[11px] text-gray-900 font-bold whitespace-pre-wrap leading-tight">
                   {session.microTarefa || 'Não preenchido'}
                 </p>
               </div>
@@ -279,7 +283,7 @@ export default function ResumoPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-[10px] text-muted-foreground print:block hidden mt-4 font-medium">
+        <div className="text-center text-[9px] text-muted-foreground print:block hidden mt-2 font-medium">
           Gerado via Plataforma Senac-Ágil | Tempo de Intervenção: 20 min
         </div>
       </div>

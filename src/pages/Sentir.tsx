@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
+import { updateConsultancy } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -55,8 +56,17 @@ export default function SentirPage() {
     return true
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validate()) {
+      if (session.consultancyId) {
+        try {
+          await updateConsultancy(session.consultancyId, {
+            sentir_data: { fato, dor, desejo },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      }
       updateSession({ fato, dor, desejo })
       navigate('/estruturar')
     }

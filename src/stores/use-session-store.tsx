@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
 export type SessionData = {
+  consultancyId: string | null
   clientName: string
   consultantName: string
   fato: string
@@ -16,6 +17,7 @@ export type SessionData = {
 }
 
 const defaultState: SessionData = {
+  consultancyId: null,
   clientName: '',
   consultantName: '',
   fato: '',
