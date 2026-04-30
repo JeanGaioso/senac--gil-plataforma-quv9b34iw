@@ -17,11 +17,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Azul Senac (#004a8d) */
-    --primary: 208 100% 28%;
+    /* Azul Principal (Senac Blue): RGB 0, 75, 181 (Pantone 288 C) */
+    --primary: 215 100% 35.5%;
     --primary-foreground: 210 40% 98%;
 
-    /* Laranja (#f7941e) */
+    /* Laranja (Senac Orange): RGB 247, 148, 30 (Pantone 144 C) */
     --secondary: 33 93% 54%;
     --secondary-foreground: 210 40% 98%;
 
@@ -58,7 +58,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 208 100% 28%;
+    --primary: 215 100% 35.5%;
     --primary-foreground: 210 40% 98%;
     --secondary: 33 93% 54%;
     --secondary-foreground: 210 40% 98%;

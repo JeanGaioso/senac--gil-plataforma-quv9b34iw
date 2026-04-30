@@ -144,7 +144,7 @@ export default function EscalarPage() {
             <Button
               variant="outline"
               onClick={handleBack}
-              className="text-[#f7941e] border-[#f7941e] hover:bg-[#f7941e] hover:text-white transition-colors"
+              className="text-primary border-primary hover:bg-primary hover:text-white transition-colors"
             >
               <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
             </Button>

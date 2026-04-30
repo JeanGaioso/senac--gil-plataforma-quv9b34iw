@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Sparkles, Wand2 } from 'lucide-react'
 
 export default function EstruturarPage() {
   const { session, updateSession } = useSessionStore()
@@ -17,18 +17,16 @@ export default function EstruturarPage() {
   const [riscos, setRiscos] = useState(session.riscos)
   const [kpis, setKpis] = useState(session.kpis)
 
-  useEffect(() => {
-    if (!goldenTask && session.fato && session.dor && session.desejo) {
-      // Advanced Golden Task Engine Simulation
-      // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo]
-      const firstActionWord = session.desejo.trim().split(' ')[0] || 'Resolver'
-      const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
-      const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
+  const handleGenerateAI = () => {
+    // Advanced Golden Task Engine Simulation
+    // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo]
+    const firstActionWord = session.desejo.trim().split(' ')[0] || 'Resolver'
+    const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
+    const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
 
-      const generated = `${actionCapitalized} o impacto de "${objetoStr}" com uma melhoria de 25% até o final da próxima semana.`
-      setGoldenTask(generated)
-    }
-  }, [goldenTask, session])
+    const generated = `${actionCapitalized} o impacto de "${objetoStr}" com uma melhoria de 25% até o final da próxima semana.`
+    setGoldenTask(generated)
+  }
 
   const handleNext = () => {
     if (pontosFortes && kpis) {
@@ -51,18 +49,31 @@ export default function EstruturarPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2 relative">
-          <div className="absolute top-4 right-4 text-secondary">
-            <Sparkles className="w-5 h-5" />
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 relative">
+          <div className="flex items-center justify-between">
+            <Label
+              htmlFor="goldenTask"
+              className="text-base font-bold text-primary flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5 text-secondary" />
+              Tarefa de Ouro
+            </Label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateAI}
+              className="text-primary border-primary hover:bg-primary hover:text-white transition-colors"
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Gerar com IA
+            </Button>
           </div>
-          <Label htmlFor="goldenTask" className="text-base font-bold text-primary">
-            Tarefa de Ouro Gerada
-          </Label>
           <Textarea
             id="goldenTask"
             value={goldenTask}
             onChange={(e) => setGoldenTask(e.target.value)}
-            className="min-h-[100px] font-medium resize-none bg-white focus-visible:ring-secondary"
+            placeholder="[Ação] + [Objeto] + [Métrica] + [Prazo]"
+            className="min-h-[100px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
           />
         </div>
 
@@ -104,7 +115,7 @@ export default function EstruturarPage() {
           <Button
             variant="outline"
             onClick={handleBack}
-            className="text-[#004a8d] border-[#004a8d] hover:bg-[#004a8d] hover:text-white transition-colors"
+            className="text-primary border-primary hover:bg-primary hover:text-white transition-colors"
           >
             <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
           </Button>
@@ -112,7 +123,7 @@ export default function EstruturarPage() {
             onClick={handleNext}
             disabled={!pontosFortes || !kpis}
             size="lg"
-            className="hover:scale-105 transition-transform w-full sm:w-auto"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 transition-transform w-full sm:w-auto"
           >
             Avançar para Escalar
             <ArrowRight className="ml-2 w-4 h-4" />
