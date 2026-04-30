@@ -24,7 +24,7 @@ export default function EstruturarPage() {
     const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
     const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
 
-    const generated = `${actionCapitalized} o impacto de "${objetoStr}" com uma melhoria de 25% até o final da próxima semana.`
+    const generated = `[Ação]: ${actionCapitalized}\n[Objeto]: ${objetoStr}\n[Métrica]: Melhoria de 25%\n[Prazo]: Até o final da próxima semana`
     setGoldenTask(generated)
   }
 
@@ -73,7 +73,7 @@ export default function EstruturarPage() {
             value={goldenTask}
             onChange={(e) => setGoldenTask(e.target.value)}
             placeholder="[Ação] + [Objeto] + [Métrica] + [Prazo]"
-            className="min-h-[100px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
+            className="min-h-[120px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
           />
         </div>
 
