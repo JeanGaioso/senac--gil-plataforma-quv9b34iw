@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
 import { updateConsultancy } from '@/services/consultancies'
@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, Save, Lightbulb, Wand2, Edit3 } from 'lucide-react'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { ArrowLeft, Save, Lightbulb, Wand2, Loader2, CheckCircle2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -22,21 +21,37 @@ export default function EscalarPage() {
   const { session, updateSession, finishSession } = useSessionStore()
   const navigate = useNavigate()
 
-  const [mode, setMode] = useState<'ai' | 'manual'>('ai')
-  const [microTarefa, setMicroTarefa] = useState(session.microTarefa)
+  const [microTarefa, setMicroTarefa] = useState(session.microTarefa || '')
   const [showModal, setShowModal] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
 
-  // AI Micro-task generation based on Golden Task
-  useEffect(() => {
-    if (mode === 'ai') {
-      const taskAction = session.goldenTask ? session.goldenTask.split(' ')[0] : 'Iniciar'
-      setMicroTarefa(
-        `[Sugerido por IA] ${taskAction} a organização dos dados principais e listar 3 ações imediatas nas próximas 24h.`,
-      )
-    } else if (microTarefa.startsWith('[Sugerido por IA]')) {
-      setMicroTarefa('')
-    }
-  }, [mode, session.goldenTask])
+  const generateSuggestions = () => {
+    setIsGenerating(true)
+    setTimeout(() => {
+      const taskAction = session.goldenTask ? session.goldenTask.split(' ')[0] : 'Implementar'
+      const contextSubject = session.goldenTask
+        ? session.goldenTask.substring(taskAction.length).trim()
+        : 'a estratégia definida'
+
+      const templates = [
+        `Criar um plano de ação simples para ${contextSubject || 'a melhoria contínua'} e delegar a primeira tarefa hoje.`,
+        `Agendar uma reunião de 15 minutos com a equipe para alinhar os próximos passos sobre ${contextSubject || 'as novas metas'}.`,
+        `Desenvolver um checklist de 3 itens focados em ${taskAction} para iniciar amanhã cedo.`,
+        `Revisar os recursos necessários para ${contextSubject || 'o projeto'} e listar o que falta nas próximas 24h.`,
+        `Entrar em contato com o principal envolvido para validar a execução de ${contextSubject || 'nossa ideia'}.`,
+        `Documentar o processo atual focado em ${taskAction} para identificar o primeiro gargalo a ser resolvido hoje.`,
+      ]
+
+      const shuffled = templates.sort(() => 0.5 - Math.random())
+      setSuggestions(shuffled.slice(0, 3).map((s) => `[Sugerido por IA] ${s}`))
+      setIsGenerating(false)
+    }, 1200)
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setMicroTarefa(suggestion)
+  }
 
   const handleFinish = () => {
     if (!microTarefa) return
@@ -52,7 +67,7 @@ export default function EscalarPage() {
     ]
     const isComplex =
       complexTerms.some((term) => microTarefa.toLowerCase().includes(term)) ||
-      microTarefa.length > 100
+      microTarefa.length > 150
 
     if (isComplex) {
       setShowModal(true)
@@ -83,71 +98,79 @@ export default function EscalarPage() {
   }
 
   return (
-    <>
+    <div className="max-w-3xl mx-auto w-full">
       <Card className="shadow-lg border-primary/10 animate-fade-in-up">
         <CardHeader>
-          <CardTitle className="text-2xl text-primary">Fase 3: Escalar (Execução)</CardTitle>
+          <CardTitle className="text-2xl text-senac-blue">Fase 3: Escalar (Execução)</CardTitle>
           <CardDescription>
             Defina a primeira ação imediata que o cliente executará após a sessão.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div>
                 <Label htmlFor="microTarefa" className="text-lg font-bold flex items-center gap-2">
                   Micro-Tarefa 24h
-                  <Lightbulb className="w-5 h-5 text-secondary" />
+                  <Lightbulb className="w-5 h-5 text-senac-orange" />
                 </Label>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 max-w-md">
                   O que pode ser feito em até 24 horas para dar o primeiro passo em direção ao
-                  objetivo?
+                  objetivo? Escreva manualmente ou use a IA para gerar sugestões.
                 </p>
               </div>
-              <RadioGroup
-                value={mode}
-                onValueChange={(v) => setMode(v as 'ai' | 'manual')}
-                className="flex flex-row items-center gap-4 bg-muted/50 p-2 rounded-lg"
+              <Button
+                onClick={generateSuggestions}
+                disabled={isGenerating}
+                className="bg-senac-orange hover:bg-senac-orange/90 text-white shadow-md transition-all whitespace-nowrap"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ai" id="mode-ai" />
-                  <Label htmlFor="mode-ai" className="flex items-center gap-1 cursor-pointer">
-                    <Wand2 className="w-4 h-4 text-primary" /> Sugerido por IA
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="manual" id="mode-manual" />
-                  <Label htmlFor="mode-manual" className="flex items-center gap-1 cursor-pointer">
-                    <Edit3 className="w-4 h-4 text-primary" /> Manual
-                  </Label>
-                </div>
-              </RadioGroup>
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Wand2 className="w-4 h-4 mr-2" />
+                )}
+                Gera com IA
+              </Button>
             </div>
 
-            <div
-              className={cn(
-                'relative transition-all duration-500',
-                mode === 'ai' ? 'opacity-90' : 'opacity-100',
-              )}
-            >
+            {suggestions.length > 0 && (
+              <div className="bg-slate-50 border border-slate-100 p-4 rounded-lg space-y-3 animate-fade-in">
+                <p className="text-sm font-medium text-slate-600 mb-2">
+                  Sugestões da IA (clique para selecionar):
+                </p>
+                {suggestions.map((suggestion, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="p-3 bg-white border border-slate-200 rounded-md cursor-pointer hover:border-senac-blue hover:shadow-sm transition-all text-sm text-slate-700 flex items-start gap-3 group"
+                  >
+                    <CheckCircle2
+                      className={cn(
+                        'w-5 h-5 mt-0.5 shrink-0 transition-colors',
+                        microTarefa === suggestion
+                          ? 'text-senac-blue'
+                          : 'text-slate-200 group-hover:text-senac-blue/40',
+                      )}
+                    />
+                    <span className="leading-relaxed">
+                      {suggestion.replace('[Sugerido por IA] ', '')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="relative transition-all duration-500">
               <Textarea
                 id="microTarefa"
                 value={microTarefa}
                 onChange={(e) => setMicroTarefa(e.target.value)}
                 placeholder="Ex: Ligar para os 3 principais fornecedores para renegociar tabela..."
-                maxLength={200}
-                readOnly={mode === 'ai'}
-                className={cn(
-                  'min-h-[120px] resize-none text-base focus-visible:ring-secondary transition-colors duration-300',
-                  mode === 'ai' &&
-                    'bg-primary/5 border-primary/20 cursor-default focus-visible:ring-0',
-                )}
+                className="min-h-[120px] resize-none text-base focus-visible:ring-senac-blue transition-colors duration-300"
               />
-              {mode === 'manual' && (
-                <div className="absolute bottom-3 right-3 text-xs font-medium text-muted-foreground animate-fade-in">
-                  {microTarefa.length}/200
-                </div>
-              )}
+              <div className="absolute bottom-3 right-3 text-xs font-medium text-muted-foreground">
+                {microTarefa.length} caracteres
+              </div>
             </div>
           </div>
 
@@ -155,7 +178,7 @@ export default function EscalarPage() {
             <Button
               variant="outline"
               onClick={handleBack}
-              className="text-primary border-primary hover:bg-primary hover:text-white transition-colors"
+              className="text-senac-blue border-senac-blue hover:bg-senac-blue hover:text-white transition-colors"
             >
               <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
             </Button>
@@ -163,7 +186,7 @@ export default function EscalarPage() {
               onClick={handleFinish}
               disabled={!microTarefa}
               size="lg"
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:scale-105 transition-transform"
+              className="bg-senac-blue text-white hover:bg-senac-blue/90 hover:scale-105 transition-transform"
             >
               <Save className="mr-2 w-4 h-4" /> Finalizar Intervenção
             </Button>
@@ -174,7 +197,7 @@ export default function EscalarPage() {
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-secondary flex items-center gap-2">
+            <DialogTitle className="text-senac-orange flex items-center gap-2">
               <Lightbulb className="w-5 h-5" /> Sugestão de Subdivisão
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
@@ -190,12 +213,15 @@ export default function EscalarPage() {
             >
               Revisar Tarefa
             </Button>
-            <Button onClick={proceedToFinish} className="w-full sm:w-auto bg-primary">
+            <Button
+              onClick={proceedToFinish}
+              className="w-full sm:w-auto bg-senac-blue hover:bg-senac-blue/90 text-white"
+            >
               Manter e Finalizar Mesmo Assim
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }
