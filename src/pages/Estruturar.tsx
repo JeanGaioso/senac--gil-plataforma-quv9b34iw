@@ -1,31 +1,53 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
-import { updateConsultancy } from '@/services/consultancies'
+import { updateConsultancy, generateGoldenTasks } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Sparkles, Wand2, Loader2, Check } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function EstruturarPage() {
   const { session, updateSession } = useSessionStore()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
-  const [goldenTask, setGoldenTask] = useState(session.goldenTask)
-  const [pontosFortes, setPontosFortes] = useState(session.pontosFortes)
-  const [riscos, setRiscos] = useState(session.riscos)
-  const [kpis, setKpis] = useState(session.kpis)
+  const [goldenTask, setGoldenTask] = useState(session.goldenTask || '')
+  const [pontosFortes, setPontosFortes] = useState(session.pontosFortes || '')
+  const [riscos, setRiscos] = useState(session.riscos || '')
+  const [kpis, setKpis] = useState(session.kpis || '')
 
-  const handleGenerateAI = () => {
-    // Advanced Golden Task Engine Simulation (SMART)
-    const firstActionWord = session.desejo.trim().split(' ')[0] || 'Aumentar'
-    const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
-    const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o resultado esperado'
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isGenerating, setIsGenerating] = useState(false)
 
-    const generated = `${actionCapitalized} ${objetoStr} em 20% através da implementação de ações estruturadas nos próximos 30 dias.`
-    setGoldenTask(generated)
+  const handleGenerateAI = async () => {
+    setIsGenerating(true)
+    try {
+      const res = await generateGoldenTasks({
+        fato: session.fato,
+        dor: session.dor,
+        desejo: session.desejo,
+      })
+      if (res.suggestions && res.suggestions.length > 0) {
+        setSuggestions(res.suggestions)
+        toast({
+          title: 'Sugestões geradas!',
+          description: 'Escolha uma das sugestões abaixo ou edite manualmente.',
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erro ao gerar com IA',
+        description: 'Houve um problema ao comunicar com o servidor. Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleNext = async () => {
@@ -72,9 +94,14 @@ export default function EstruturarPage() {
               variant="outline"
               size="sm"
               onClick={handleGenerateAI}
+              disabled={isGenerating}
               className="text-primary border-primary hover:bg-primary hover:text-white transition-colors"
             >
-              <Wand2 className="w-4 h-4 mr-2" />
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Wand2 className="w-4 h-4 mr-2" />
+              )}
               Gerar com IA
             </Button>
           </div>
@@ -83,8 +110,34 @@ export default function EstruturarPage() {
             value={goldenTask}
             onChange={(e) => setGoldenTask(e.target.value)}
             placeholder="Ex: Aumentar as vendas em 20% até o final do trimestre."
-            className="min-h-[120px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
+            className="min-h-[100px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
           />
+
+          {suggestions.length > 0 && (
+            <div className="mt-3 space-y-2 animate-fade-in">
+              <p className="text-sm font-semibold text-primary flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Opções sugeridas:
+              </p>
+              <div className="grid gap-2">
+                {suggestions.map((sug, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md border border-primary/10 shadow-sm gap-3 group hover:border-secondary transition-colors"
+                  >
+                    <p className="text-sm text-gray-700 flex-1">{sug}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setGoldenTask(sug)}
+                      className="shrink-0 text-secondary border-secondary hover:bg-secondary hover:text-white w-full sm:w-auto"
+                    >
+                      <Check className="w-4 h-4 mr-1" /> Usar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

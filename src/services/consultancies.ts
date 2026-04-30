@@ -7,3 +7,10 @@ export const createConsultancy = (data: any) => pb.collection('consultancies').c
 export const updateConsultancy = (id: string, data: any) =>
   pb.collection('consultancies').update(id, data)
 export const deleteConsultancy = (id: string) => pb.collection('consultancies').delete(id)
+
+export const generateGoldenTasks = (data: { fato?: string; dor?: string; desejo?: string }) =>
+  pb.send('/backend/v1/generate-golden-tasks', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  })
