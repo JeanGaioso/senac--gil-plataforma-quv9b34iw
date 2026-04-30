@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 
 export type SessionData = {
   clientName: string
-  consultantId: string
+  consultantName: string
   fato: string
   dor: string
   desejo: string
@@ -17,7 +17,7 @@ export type SessionData = {
 
 const defaultState: SessionData = {
   clientName: '',
-  consultantId: '',
+  consultantName: '',
   fato: '',
   dor: '',
   desejo: '',
@@ -62,7 +62,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setSession({
       ...defaultState,
       clientName: client,
-      consultantId: consultant,
+      consultantName: consultant,
       startTime: Date.now(),
       isFinished: false,
     })

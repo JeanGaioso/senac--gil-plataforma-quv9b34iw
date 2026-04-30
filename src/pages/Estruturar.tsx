@@ -18,13 +18,13 @@ export default function EstruturarPage() {
   const [kpis, setKpis] = useState(session.kpis)
 
   const handleGenerateAI = () => {
-    // Advanced Golden Task Engine Simulation
-    // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo]
+    // Advanced Golden Task Engine Simulation (SMART)
+    // Mandatory format: [Ação] + [Objeto] + [Métrica] + [Prazo] in a single sentence
     const firstActionWord = session.desejo.trim().split(' ')[0] || 'Resolver'
     const actionCapitalized = firstActionWord.charAt(0).toUpperCase() + firstActionWord.slice(1)
     const objetoStr = session.dor.trim().split(' ').slice(0, 5).join(' ') || 'o problema atual'
 
-    const generated = `[Ação]: ${actionCapitalized}\n[Objeto]: ${objetoStr}\n[Métrica]: Melhoria de 25%\n[Prazo]: Até o final da próxima semana`
+    const generated = `${actionCapitalized} ${objetoStr} em 25% até o final da próxima semana.`
     setGoldenTask(generated)
   }
 
@@ -72,7 +72,7 @@ export default function EstruturarPage() {
             id="goldenTask"
             value={goldenTask}
             onChange={(e) => setGoldenTask(e.target.value)}
-            placeholder="[Ação] + [Objeto] + [Métrica] + [Prazo]"
+            placeholder="Ex: Aumentar as vendas em 20% até o final do trimestre."
             className="min-h-[120px] font-medium resize-none bg-white focus-visible:ring-secondary border-primary/20"
           />
         </div>

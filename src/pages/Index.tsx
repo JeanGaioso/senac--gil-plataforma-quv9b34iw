@@ -12,12 +12,12 @@ export default function IndexPage() {
   const navigate = useNavigate()
 
   const [clientName, setClientName] = useState('')
-  const [consultantId, setConsultantId] = useState('')
+  const [consultantName, setConsultantName] = useState('')
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault()
-    if (clientName && consultantId) {
-      startSession(clientName, consultantId)
+    if (clientName && consultantName) {
+      startSession(clientName, consultantName)
       navigate('/sentir')
     }
   }
@@ -45,12 +45,12 @@ export default function IndexPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="consultantId">ID do Consultor</Label>
+              <Label htmlFor="consultantName">Nome do Consultor</Label>
               <Input
-                id="consultantId"
-                placeholder="Ex: C-1024"
-                value={consultantId}
-                onChange={(e) => setConsultantId(e.target.value)}
+                id="consultantName"
+                placeholder="Ex: João Silva"
+                value={consultantName}
+                onChange={(e) => setConsultantName(e.target.value)}
                 required
               />
             </div>
