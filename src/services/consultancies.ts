@@ -14,3 +14,10 @@ export const generateGoldenTasks = (data: { fato?: string; dor?: string; desejo?
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
   })
+
+export const generateSwot = (data: { fato?: string; dor?: string; desejo?: string }) =>
+  pb.send('/backend/v1/generate-swot', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  })

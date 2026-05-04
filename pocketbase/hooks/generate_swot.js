@@ -1,28 +1,43 @@
 routerAdd(
   'POST',
-  '/backend/v1/generate-golden-tasks',
+  '/backend/v1/generate-swot',
   (e) => {
     const body = e.requestInfo().body || {}
     const fato = body.fato || 'Não informado'
     const dor = body.dor || 'Não informado'
     const desejo = body.desejo || 'Não informado'
 
-    const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar a "Tarefa de Ouro" (Golden Task) para um cliente.
+    const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar opções de Análise SWOT.
 Diagnóstico atual:
 - Fato: ${fato}
 - Dor: ${dor}
 - Desejo: ${desejo}
 
-Gere 3 sugestões de "Tarefa de Ouro" altamente focadas, contextuais e baseadas na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal).
-A Tarefa de Ouro é o objetivo principal que resolverá a Dor e alcançará o Desejo partindo do Fato atual. Deve ser UMA ÚNICA FRASE por sugestão, acionável e direta.
-
-Retorne APENAS um JSON array de strings com as 3 sugestões. NENHUM markdown, NENHUMA explicação adicional.
-Exemplo: ["Aumentar a conversão em 15% nos próximos 45 dias com novo script", "Reduzir tempo de entrega em 20% até o fim do trimestre"]`
+Gere 2 opções diferentes de Análise SWOT (Forças, Fraquezas, Oportunidades, Ameaças) relevantes para o contexto acima.
+Retorne APENAS um array JSON válido com 2 objetos. Cada objeto deve ter a estrutura exata:
+[
+  {
+    "strengths": "texto detalhando forças...",
+    "weaknesses": "texto detalhando fraquezas...",
+    "opportunities": "texto detalhando oportunidades...",
+    "threats": "texto detalhando ameaças..."
+  }
+]
+NENHUM markdown, NENHUMA formatação extra, NENHUMA explicação.`
 
     let suggestions = [
-      `Aumentar os resultados em 20% nos próximos 30 dias com base no diagnóstico.`,
-      `Reduzir os impactos negativos mapeados em 15% até o final do semestre atual.`,
-      `Implementar uma nova estrutura em até 45 dias para alcançar os objetivos esperados.`,
+      {
+        strengths: 'Equipe engajada, produto com diferencial competitivo.',
+        weaknesses: 'Processos operacionais desestruturados, falta de métricas claras.',
+        opportunities: 'Mercado em franca expansão e demanda por digitalização.',
+        threats: 'Concorrência agressiva no mercado, mudanças regulatórias no setor.',
+      },
+      {
+        strengths: 'Carteira de clientes fiel, marca estabelecida e reconhecida localmente.',
+        weaknesses: 'Baixa adoção de tecnologia, dependência de poucos canais de venda.',
+        opportunities: 'Estabelecimento de parcerias estratégicas, atuação em novos nichos.',
+        threats: 'Instabilidade econômica, rápida entrada de novos competidores digitais.',
+      },
     ]
 
     const url = $secrets.get('SKIP_AI_GATEWAY_URL')
@@ -58,17 +73,11 @@ Exemplo: ["Aumentar a conversão em 15% nos próximos 45 dias com novo script", 
             const match = content.match(/\[.*\]/s)
             if (match) {
               suggestions = JSON.parse(match[0])
-            } else {
-              suggestions = content
-                .split('\n')
-                .map((s) => s.replace(/^[-*0-9.]\s*/, '').trim())
-                .filter((s) => s.length > 0)
-                .slice(0, 3)
             }
           }
         }
       } catch (err) {
-        $app.logger().error('AI Gateway Error', 'error', err.message)
+        $app.logger().error('AI Gateway Error (SWOT)', 'error', err.message)
       }
     }
 
