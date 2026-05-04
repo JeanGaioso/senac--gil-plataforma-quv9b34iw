@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
-import { updateConsultancy, generateGoldenTasks, generateSwot } from '@/services/consultancies'
+import { updateConsultancy, generateGoldenTasks } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, ArrowRight, Sparkles, Wand2, Loader2, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Sparkles, Wand2, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 
 export default function EstruturarPage() {
   const { session, updateSession } = useSessionStore()
@@ -23,57 +24,40 @@ export default function EstruturarPage() {
   const [opportunities, setOpportunities] = useState(sessionData.opportunities || '')
   const [threats, setThreats] = useState(sessionData.threats || '')
 
-  const [suggestions, setSuggestions] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
 
-  const [swotSuggestions, setSwotSuggestions] = useState<any[]>([])
-  const [isGeneratingSwot, setIsGeneratingSwot] = useState(false)
+  const hasSwotContent =
+    strengths.trim() !== '' &&
+    weaknesses.trim() !== '' &&
+    opportunities.trim() !== '' &&
+    threats.trim() !== ''
 
   const handleGenerateAI = async () => {
+    if (!hasSwotContent) {
+      toast({
+        title: 'Preencha a matriz SWOT antes de gerar a Tarefa de Ouro.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsGenerating(true)
     try {
       const res = await generateGoldenTasks({
         fato: session.fato,
         dor: session.dor,
         desejo: session.desejo,
+        swot: { strengths, weaknesses, opportunities, threats },
       })
-      if (res.suggestions && res.suggestions.length > 0) {
-        setSuggestions(res.suggestions)
-        toast({ title: 'Sugestões geradas!' })
+      if (res.task) {
+        setGoldenTask(res.task)
+        toast({ title: 'Tarefa de Ouro gerada com sucesso!' })
       }
     } catch (error) {
-      toast({ title: 'Erro ao gerar', variant: 'destructive' })
+      toast({ title: 'Erro ao gerar Tarefa de Ouro', variant: 'destructive' })
     } finally {
       setIsGenerating(false)
     }
-  }
-
-  const handleGenerateSwot = async () => {
-    setIsGeneratingSwot(true)
-    try {
-      const res = await generateSwot({
-        fato: session.fato,
-        dor: session.dor,
-        desejo: session.desejo,
-      })
-      if (res.suggestions && res.suggestions.length > 0) {
-        setSwotSuggestions(res.suggestions)
-        toast({ title: 'Análises SWOT geradas!' })
-      }
-    } catch (error) {
-      toast({ title: 'Erro ao gerar SWOT', variant: 'destructive' })
-    } finally {
-      setIsGeneratingSwot(false)
-    }
-  }
-
-  const applySwot = (swot: any) => {
-    setStrengths(swot.strengths || '')
-    setWeaknesses(swot.weaknesses || '')
-    setOpportunities(swot.opportunities || '')
-    setThreats(swot.threats || '')
-    setSwotSuggestions([])
-    toast({ title: 'SWOT Aplicado', description: 'Você pode editar os quadros manualmente agora.' })
   }
 
   const isFormValid = strengths && weaknesses && opportunities && threats && goldenTask
@@ -105,114 +89,20 @@ export default function EstruturarPage() {
       <CardHeader>
         <CardTitle className="text-2xl text-primary">Fase 2: Estruturar (Estratégia)</CardTitle>
         <CardDescription>
-          Defina a Tarefa de Ouro e realize a Análise SWOT da consultoria.
+          Defina a Matriz SWOT e gere a Tarefa de Ouro baseada na análise.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Golden Task Section */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 relative">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <Label
-              htmlFor="goldenTask"
-              className="text-base font-bold text-primary flex items-center gap-2"
-            >
-              <Sparkles className="w-5 h-5 text-secondary" />
-              Tarefa de Ouro (Metodologia SMART)
-            </Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateAI}
-              disabled={isGenerating}
-              className="text-primary border-primary shrink-0"
-            >
-              {isGenerating ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="w-4 h-4 mr-2" />
-              )}
-              Gerar com IA
-            </Button>
-          </div>
-          <Textarea
-            id="goldenTask"
-            value={goldenTask}
-            onChange={(e) => setGoldenTask(e.target.value)}
-            placeholder="Ex: Aumentar a conversão em 15% até o final do trimestre..."
-            className="min-h-[90px] bg-white focus-visible:ring-secondary border-primary/20 font-medium resize-none"
-          />
-          {suggestions.length > 0 && (
-            <div className="pt-2 space-y-2 animate-fade-in">
-              <p className="text-sm font-semibold text-primary flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Opções sugeridas:
-              </p>
-              <div className="grid gap-2">
-                {suggestions.map((sug, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-md border border-primary/10 shadow-sm gap-3 group hover:border-secondary transition-colors"
-                  >
-                    <p className="text-sm text-gray-700 flex-1">{sug}</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setGoldenTask(sug)}
-                      className="shrink-0 text-secondary border-secondary w-full sm:w-auto"
-                    >
-                      <Check className="w-4 h-4 mr-1" /> Usar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* SWOT Section */}
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col gap-1">
             <Label className="text-base font-bold text-slate-800 flex items-center gap-2">
               Matriz SWOT (Forças, Fraquezas, Oportunidades, Ameaças)
             </Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateSwot}
-              disabled={isGeneratingSwot}
-              className="shrink-0"
-            >
-              {isGeneratingSwot ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Wand2 className="w-4 h-4 mr-2" />
-              )}
-              Gerar SWOT
-            </Button>
+            <p className="text-sm text-slate-500">
+              Preencha os quadrantes abaixo com a análise do contexto do cliente.
+            </p>
           </div>
-
-          {swotSuggestions.length > 0 && (
-            <div className="space-y-2 animate-fade-in mb-4 bg-white p-3 rounded-md border shadow-sm">
-              <p className="text-sm font-semibold text-slate-700">Opções sugeridas de SWOT:</p>
-              <div className="grid gap-2">
-                {swotSuggestions.map((sug, i) => (
-                  <div
-                    key={i}
-                    className="bg-slate-50 border rounded p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-                  >
-                    <div className="text-xs text-slate-600 line-clamp-2 flex-1">
-                      <span className="font-semibold text-emerald-700">Forças:</span>{' '}
-                      {sug.strengths} |{' '}
-                      <span className="font-semibold text-rose-700">Fraquezas:</span>{' '}
-                      {sug.weaknesses}
-                    </div>
-                    <Button size="sm" onClick={() => applySwot(sug)} className="w-full sm:w-auto">
-                      Usar Opção {i + 1}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 bg-emerald-50/50 p-3 rounded border border-emerald-100 shadow-sm">
@@ -252,6 +142,56 @@ export default function EstruturarPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Golden Task Section */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <Label
+                htmlFor="goldenTask"
+                className="text-base font-bold text-primary flex items-center gap-2"
+              >
+                <Sparkles className="w-5 h-5 text-secondary" />
+                Tarefa de Ouro (Metodologia SMART)
+              </Label>
+              <p className="text-sm text-slate-600">
+                O objetivo principal derivado da análise. Preencha manualmente ou gere com IA a
+                partir da SWOT.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateAI}
+              disabled={isGenerating || !hasSwotContent}
+              className={cn(
+                'shrink-0',
+                hasSwotContent
+                  ? 'text-primary border-primary hover:bg-primary/10'
+                  : 'text-muted-foreground',
+              )}
+              title={
+                !hasSwotContent
+                  ? 'Preencha a Matriz SWOT primeiro para utilizar a IA'
+                  : 'Gerar Tarefa de Ouro usando IA'
+              }
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Wand2 className="w-4 h-4 mr-2" />
+              )}
+              Gerar com IA
+            </Button>
+          </div>
+          <Textarea
+            id="goldenTask"
+            value={goldenTask}
+            onChange={(e) => setGoldenTask(e.target.value)}
+            placeholder="Ex: Aumentar a conversão em 15% até o final do trimestre implementando novo script de vendas focado na dor mapeada..."
+            className="min-h-[90px] bg-white focus-visible:ring-secondary border-primary/20 font-medium resize-none"
+          />
         </div>
 
         <div className="pt-4 flex flex-col sm:flex-row justify-between gap-4 border-t">

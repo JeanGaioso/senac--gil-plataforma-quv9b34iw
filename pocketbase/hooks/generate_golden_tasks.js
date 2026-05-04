@@ -6,6 +6,7 @@ routerAdd(
     const fato = body.fato || 'Não informado'
     const dor = body.dor || 'Não informado'
     const desejo = body.desejo || 'Não informado'
+    const swot = body.swot || {}
 
     const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar a "Tarefa de Ouro" (Golden Task) para um cliente.
 Diagnóstico atual:
@@ -13,17 +14,20 @@ Diagnóstico atual:
 - Dor: ${dor}
 - Desejo: ${desejo}
 
-Gere 3 sugestões de "Tarefa de Ouro" altamente focadas, contextuais e baseadas na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal).
-A Tarefa de Ouro é o objetivo principal que resolverá a Dor e alcançará o Desejo partindo do Fato atual. Deve ser UMA ÚNICA FRASE por sugestão, acionável e direta.
+Análise SWOT:
+- Forças: ${swot.strengths || 'Não informado'}
+- Fraquezas: ${swot.weaknesses || 'Não informado'}
+- Oportunidades: ${swot.opportunities || 'Não informado'}
+- Ameaças: ${swot.threats || 'Não informado'}
 
-Retorne APENAS um JSON array de strings com as 3 sugestões. NENHUM markdown, NENHUMA explicação adicional.
-Exemplo: ["Aumentar a conversão em 15% nos próximos 45 dias com novo script", "Reduzir tempo de entrega em 20% até o fim do trimestre"]`
+Gere APENAS UMA ÚNICA sugestão de "Tarefa de Ouro" altamente focada, contextual e baseada na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal).
+A Tarefa de Ouro é o objetivo principal que resolverá a Dor e alcançará o Desejo partindo do Fato atual e integrando as informações estratégicas levantadas na análise SWOT. Deve ser UMA ÚNICA FRASE, acionável e direta.
 
-    let suggestions = [
-      `Aumentar os resultados em 20% nos próximos 30 dias com base no diagnóstico.`,
-      `Reduzir os impactos negativos mapeados em 15% até o final do semestre atual.`,
-      `Implementar uma nova estrutura em até 45 dias para alcançar os objetivos esperados.`,
-    ]
+Retorne APENAS um JSON com o seguinte formato:
+{"task": "Sua sugestão de tarefa de ouro aqui"}
+NENHUM markdown, NENHUMA explicação adicional.`
+
+    let task = `Integrar as forças mapeadas para neutralizar as ameaças e alcançar o objetivo principal em 30 dias.`
 
     const url = $secrets.get('SKIP_AI_GATEWAY_URL')
     const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
@@ -53,26 +57,30 @@ Exemplo: ["Aumentar a conversão em 15% nos próximos 45 dias com novo script", 
         if (json && json.choices && json.choices.length > 0) {
           const content = json.choices[0].message.content.trim()
           try {
-            suggestions = JSON.parse(content)
-          } catch (err) {
-            const match = content.match(/\[.*\]/s)
-            if (match) {
-              suggestions = JSON.parse(match[0])
+            const parsed = JSON.parse(content)
+            if (parsed.task) {
+              task = parsed.task
             } else {
-              suggestions = content
-                .split('\n')
-                .map((s) => s.replace(/^[-*0-9.]\s*/, '').trim())
-                .filter((s) => s.length > 0)
-                .slice(0, 3)
+              task = content
+            }
+          } catch (err) {
+            const match = content.match(/\{[\s\S]*\}/)
+            if (match) {
+              try {
+                const parsedMatch = JSON.parse(match[0])
+                if (parsedMatch.task) task = parsedMatch.task
+              } catch (e2) {}
+            } else {
+              task = content.replace(/["*{}]/g, '').trim()
             }
           }
         }
       } catch (err) {
-        $app.logger().error('AI Gateway Error', 'error', err.message)
+        $app.logger().error('AI Gateway Error (Golden Task)', 'error', err.message)
       }
     }
 
-    return e.json(200, { suggestions })
+    return e.json(200, { task })
   },
   $apis.requireAuth(),
 )
