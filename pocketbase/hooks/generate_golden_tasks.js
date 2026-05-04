@@ -3,25 +3,17 @@ routerAdd(
   '/backend/v1/generate-golden-tasks',
   (e) => {
     const body = e.requestInfo().body || {}
-    const fato = body.fato || 'Não informado'
-    const dor = body.dor || 'Não informado'
-    const desejo = body.desejo || 'Não informado'
     const swot = body.swot || {}
 
     const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar a "Tarefa de Ouro" (Golden Task) para um cliente.
-Diagnóstico atual:
-- Fato: ${fato}
-- Dor: ${dor}
-- Desejo: ${desejo}
-
 Análise SWOT:
 - Forças: ${swot.strengths || 'Não informado'}
 - Fraquezas: ${swot.weaknesses || 'Não informado'}
 - Oportunidades: ${swot.opportunities || 'Não informado'}
 - Ameaças: ${swot.threats || 'Não informado'}
 
-Gere APENAS UMA ÚNICA sugestão de "Tarefa de Ouro" altamente focada, contextual e baseada na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal).
-A Tarefa de Ouro é o objetivo principal que resolverá a Dor e alcançará o Desejo partindo do Fato atual e integrando as informações estratégicas levantadas na análise SWOT. Deve ser UMA ÚNICA FRASE, acionável e direta.
+Gere APENAS UMA ÚNICA sugestão de "Tarefa de Ouro" altamente focada, contextual e baseada na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal) baseada UNICAMENTE na análise SWOT fornecida.
+A Tarefa de Ouro é o objetivo principal derivado desta análise. Deve ser UMA ÚNICA FRASE, acionável e direta.
 
 Retorne APENAS um JSON com o seguinte formato:
 {"task": "Sua sugestão de tarefa de ouro aqui"}

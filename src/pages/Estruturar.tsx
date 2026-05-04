@@ -27,15 +27,15 @@ export default function EstruturarPage() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const hasSwotContent =
-    strengths.trim() !== '' &&
-    weaknesses.trim() !== '' &&
-    opportunities.trim() !== '' &&
+    strengths.trim() !== '' ||
+    weaknesses.trim() !== '' ||
+    opportunities.trim() !== '' ||
     threats.trim() !== ''
 
   const handleGenerateAI = async () => {
     if (!hasSwotContent) {
       toast({
-        title: 'Preencha a matriz SWOT antes de gerar a Tarefa de Ouro.',
+        title: 'Preencha ao menos um campo da matriz SWOT antes de gerar a Tarefa de Ouro.',
         variant: 'destructive',
       })
       return
@@ -44,9 +44,6 @@ export default function EstruturarPage() {
     setIsGenerating(true)
     try {
       const res = await generateGoldenTasks({
-        fato: session.fato,
-        dor: session.dor,
-        desejo: session.desejo,
         swot: { strengths, weaknesses, opportunities, threats },
       })
       if (res.task) {
@@ -173,7 +170,7 @@ export default function EstruturarPage() {
               )}
               title={
                 !hasSwotContent
-                  ? 'Preencha a Matriz SWOT primeiro para utilizar a IA'
+                  ? 'Preencha ao menos um campo da Matriz SWOT primeiro para utilizar a IA'
                   : 'Gerar Tarefa de Ouro usando IA'
               }
             >
@@ -185,13 +182,28 @@ export default function EstruturarPage() {
               Gerar com IA
             </Button>
           </div>
-          <Textarea
-            id="goldenTask"
-            value={goldenTask}
-            onChange={(e) => setGoldenTask(e.target.value)}
-            placeholder="Ex: Aumentar a conversão em 15% até o final do trimestre implementando novo script de vendas focado na dor mapeada..."
-            className="min-h-[90px] bg-white focus-visible:ring-secondary border-primary/20 font-medium resize-none"
-          />
+          <div className="relative">
+            <Textarea
+              id="goldenTask"
+              value={goldenTask}
+              onChange={(e) => setGoldenTask(e.target.value)}
+              disabled={isGenerating}
+              placeholder={
+                isGenerating
+                  ? 'Analisando SWOT e gerando Tarefa de Ouro...'
+                  : 'Ex: Aumentar a conversão em 15% até o final do trimestre implementando novo script de vendas focado na dor mapeada...'
+              }
+              className={cn(
+                'min-h-[90px] bg-white focus-visible:ring-secondary border-primary/20 font-medium resize-none transition-all',
+                isGenerating && 'opacity-50 animate-pulse cursor-not-allowed',
+              )}
+            />
+            {isGenerating && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <Loader2 className="w-8 h-8 text-primary animate-spin opacity-80" />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="pt-4 flex flex-col sm:flex-row justify-between gap-4 border-t">
