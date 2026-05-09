@@ -35,15 +35,21 @@ A primeira ação DEVE ser uma micro-tarefa para as próximas 24 horas.`
       },
     ]
 
-    const apiKey = $secrets.get('OPENAI_API_KEY')
+    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+    const baseUrl = $secrets.get('SKIP_AI_GATEWAY_URL')
 
-    if (!apiKey) {
+    if (!apiKey || !baseUrl) {
       return e.internalServerError('Configuração de IA ausente no servidor.')
     }
 
+    let url = baseUrl
+    if (!url.endsWith('/')) url += '/'
+    if (!url.endsWith('v1/')) url += 'v1/'
+    url += 'chat/completions'
+
     try {
       const res = $http.send({
-        url: 'https://api.openai.com/v1/chat/completions',
+        url: url,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
