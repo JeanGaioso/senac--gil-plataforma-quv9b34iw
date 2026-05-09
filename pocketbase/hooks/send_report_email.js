@@ -1,23 +1,10 @@
-// @deps nodemailer@6.9.13
 routerAdd(
   'POST',
   '/backend/v1/send-report-email',
-  async (e) => {
+  (e) => {
     const body = e.requestInfo().body
     if (!body.consultancyId || !body.email) {
       return e.badRequestError('Consultancy ID e E-mail são obrigatórios.')
-    }
-
-    const host = $secrets.get('SMTP_HOST')
-    const port = $secrets.get('SMTP_PORT')
-    const user = $secrets.get('SMTP_USER')
-    const pass = $secrets.get('SMTP_PASS')
-    const from = $secrets.get('SMTP_FROM')
-
-    if (!host || !port || !user || !pass || !from) {
-      return e.badRequestError(
-        'Erro de configuração: Verifique as credenciais SMTP na aba Secrets.',
-      )
     }
 
     let record
@@ -93,30 +80,27 @@ routerAdd(
       </div>
     `
 
-    const nodemailer = require('nodemailer')
-    const transporter = nodemailer.createTransport({
-      host: host,
-      port: Number(port),
-      secure: Number(port) === 465,
-      auth: { user, pass },
-    })
-
     try {
-      await transporter.sendMail({
-        from: from,
-        to: body.email,
+      const message = new MailerMessage({
+        from: {
+          address: $app.settings().meta.senderAddress || 'noreply@senac.br',
+          name: $app.settings().meta.senderName || 'Consultoria Express Senac',
+        },
+        to: [{ address: body.email }],
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
+
+      $app.newMailClient().send(message)
 
       $app
         .logger()
         .info('Email enviado com sucesso', 'consultancyId', body.consultancyId, 'to', body.email)
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
     } catch (err) {
-      $app.logger().error('Erro ao enviar email SMTP', 'error', err.message || String(err))
+      $app.logger().error('Erro ao enviar email', 'error', err.message || String(err))
       return e.badRequestError(
-        'Falha ao enviar o e-mail via SMTP. Verifique as credenciais nos Secrets.',
+        'Falha ao enviar o e-mail. Verifique as configurações de SMTP da instância.',
         { error: err.message },
       )
     }

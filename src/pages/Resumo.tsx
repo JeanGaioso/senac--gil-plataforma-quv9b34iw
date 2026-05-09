@@ -49,14 +49,10 @@ export default function ResumoPage() {
     } catch (e: any) {
       console.error(e)
       const errorMsg = e.response?.message || e.message || ''
-      if (
-        errorMsg.includes('Secrets') ||
-        errorMsg.includes('SMTP') ||
-        errorMsg.includes('credenciais')
-      ) {
+      if (errorMsg.includes('SMTP') || errorMsg.includes('credenciais')) {
         toast({
-          title: 'Erro de Configuração SMTP',
-          description: 'Por favor, verifique as credenciais SMTP na aba Secrets do projeto.',
+          title: 'Erro de Configuração de E-mail',
+          description: 'Por favor, verifique as configurações de SMTP da instância do servidor.',
           variant: 'destructive',
         })
       } else {
