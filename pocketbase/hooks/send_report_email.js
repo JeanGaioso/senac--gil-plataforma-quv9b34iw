@@ -1,4 +1,3 @@
-// @deps nodemailer@6.9.14
 routerAdd(
   'POST',
   '/backend/v1/send-report-email',
@@ -138,34 +137,17 @@ routerAdd(
     `
 
     try {
-      const nodemailer = require('nodemailer')
-
-      const host = $secrets.get('SMTP_HOST') || $secrets.get('HOST')
-      const portStr = $secrets.get('SMTP_PORT') || $secrets.get('PORTA')
-      const port = portStr ? Number(portStr) : 587
-      const user = $secrets.get('SMTP_USER') || $secrets.get('USER')
-      const pass = $secrets.get('SMTP_PASSWORD') || $secrets.get('PASSWORD')
-
-      if (!host || !user || !pass) {
-        throw new Error('Configurações de SMTP ausentes nos Secrets da instância.')
-      }
-
-      const transporter = nodemailer.createTransport({
-        host: host,
-        port: port,
-        secure: port === 465,
-        auth: {
-          user: user,
-          pass: pass,
+      const message = new MailerMessage({
+        from: {
+          address: 'noreply@senac.br',
+          name: 'Consultoria Express Senac',
         },
-      })
-
-      await transporter.sendMail({
-        from: '"Consultoria Express Senac" <noreply@senac.br>',
-        to: body.email,
+        to: [{ address: body.email }],
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
+
+      $app.newMailClient().send(message)
 
       $app
         .logger()
@@ -174,7 +156,7 @@ routerAdd(
     } catch (err) {
       $app.logger().error('Erro ao enviar email', 'error', err.message || String(err))
       return e.badRequestError(
-        'Falha ao enviar o e-mail. Verifique as configurações de SMTP da instância.',
+        'Falha ao enviar o e-mail. Verifique as configurações de e-mail da instância.',
         { error: err.message },
       )
     }
