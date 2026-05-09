@@ -37,15 +37,38 @@ export default function ResumoPage() {
       toast({ title: 'E-mail obrigatório', variant: 'destructive' })
       return
     }
+
+    if (!session.consultancyId) {
+      toast({
+        title: 'Cannot send report: Consultancy data is incomplete.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const hasSentir = !!(session.fato && session.dor && session.desejo)
+    const hasEstruturar = !!(
+      session.strengths &&
+      session.weaknesses &&
+      session.opportunities &&
+      session.threats
+    )
+    const hasEscalar = !!((session.plan && session.plan.length > 0) || session.microTarefa)
+    const hasTarefaOuro = !!session.goldenTask
+
+    if (!hasSentir || !hasEstruturar || !hasEscalar || !hasTarefaOuro) {
+      toast({
+        title: 'Cannot send report: Consultancy data is incomplete.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setSendingEmail(true)
     try {
-      if (session.consultancyId) {
-        await sendReportEmail(session.consultancyId, clientEmail)
-        toast({ title: `E-mail enviado com sucesso via Resend!` })
-        setEmailOpen(false)
-      } else {
-        throw new Error('Consultancy ID not found')
-      }
+      await sendReportEmail(session.consultancyId, clientEmail)
+      toast({ title: `Report sent successfully to the client.` })
+      setEmailOpen(false)
     } catch (e: any) {
       console.error(e)
       const errorMsg = e.response?.message || e.message || 'Erro ao enviar e-mail'
@@ -55,13 +78,30 @@ export default function ResumoPage() {
         e.response?.data?.consultancy?.message ||
         ''
 
-      toast({
-        title: errorMsg,
-        description: detailMsg
-          ? `${String(detailMsg)} (Verifique o Bug Scanner para mais detalhes)`
-          : 'Verifique o Bug Scanner ou a conexão SMTP.',
-        variant: 'destructive',
-      })
+      if (detailMsg?.includes('SENDER_EMAIL not found in backend secrets')) {
+        toast({
+          title: 'Configuration Error: SENDER_EMAIL not found in backend secrets.',
+          variant: 'destructive',
+        })
+      } else if (detailMsg?.includes('Email Error: The sender domain is not verified in Resend')) {
+        toast({
+          title: 'Email Error: The sender domain is not verified in Resend.',
+          variant: 'destructive',
+        })
+      } else if (detailMsg?.includes('Cannot send report: Consultancy data is incomplete.')) {
+        toast({
+          title: 'Cannot send report: Consultancy data is incomplete.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: errorMsg,
+          description: detailMsg
+            ? `${String(detailMsg)}`
+            : 'Verifique o Bug Scanner ou a conexão SMTP.',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setSendingEmail(false)
     }
@@ -124,6 +164,7 @@ export default function ResumoPage() {
             <Button
               variant="outline"
               onClick={() => setEmailOpen(true)}
+              disabled={!session.consultancyId}
               className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
             >
               <Mail className="mr-2 w-4 h-4" /> Enviar E-mail

@@ -5,6 +5,11 @@ routerAdd(
     const pkg = 'mailer'
     const mailer = require(pkg)
     const body = e.requestInfo().body
+    if (!body || typeof body !== 'object') {
+      return e.badRequestError('Invalid Payload', {
+        validation: 'Payload inválido ou malformado.',
+      })
+    }
     if (!body.consultancyId || !body.email) {
       return e.badRequestError('Invalid Parameters', {
         validation: 'Consultancy ID e E-mail são obrigatórios.',
@@ -26,6 +31,17 @@ routerAdd(
     const sentirData = record.get('sentir_data') || {}
     const estruturarData = record.get('estruturar_data') || {}
     const escalarData = record.get('escalar_data') || {}
+
+    if (
+      Object.keys(sentirData).length === 0 ||
+      Object.keys(estruturarData).length === 0 ||
+      Object.keys(escalarData).length === 0 ||
+      !tarefaOuro
+    ) {
+      return e.badRequestError('Data Incomplete', {
+        consultancy: 'Cannot send report: Consultancy data is incomplete.',
+      })
+    }
 
     const fato = sentirData.fato || 'Não preenchido'
     const dor = sentirData.dor || 'Não preenchido'
@@ -147,7 +163,16 @@ routerAdd(
     const port = parseInt(portRaw, 10)
     const user = $secrets.get('USER') || 'resend'
     const pass = $secrets.get('PASSWORD')
-    const senderEmail = $secrets.get('SENDER_EMAIL') || 'onboarding@resend.dev'
+    const senderEmail = $secrets.get('SENDER_EMAIL')
+
+    if (!senderEmail) {
+      $app
+        .logger()
+        .error('Configuration Error', 'error', 'SENDER_EMAIL not found in backend secrets.')
+      return e.badRequestError('Configuration Error', {
+        smtp: 'SENDER_EMAIL not found in backend secrets.',
+      })
+    }
 
     if (!pass) {
       return e.badRequestError('Configuração Ausente', {
@@ -246,12 +271,12 @@ routerAdd(
           'Falha na negociação de segurança com o servidor SMTP (SSL/TLS). Detalhe: ' + errMsg
       } else if (
         lowerErr.includes('sender address rejected') ||
-        lowerErr.includes('not owned by user')
+        lowerErr.includes('not owned by user') ||
+        lowerErr.includes('domain') ||
+        lowerErr.includes('unverified')
       ) {
         errorCategory = 'Remetente Rejeitado'
-        errorDetail =
-          'O endereço de remetente foi rejeitado pelo servidor SMTP. Certifique-se de que o usuário fornecido nos secrets coincide com o domínio ou remetente permitido. Detalhe: ' +
-          errMsg
+        errorDetail = 'Email Error: The sender domain is not verified in Resend.'
       } else {
         errorCategory = 'Erro SMTP Desconhecido'
         errorDetail = 'O servidor SMTP retornou um erro não tratado: ' + errMsg
