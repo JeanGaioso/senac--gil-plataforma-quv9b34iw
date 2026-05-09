@@ -142,17 +142,16 @@ routerAdd(
       </div>
     `
 
-    const host = $secrets.get('HOST')
-    const portRaw = $secrets.get('PORT') || '587'
+    const host = $secrets.get('HOST') || 'smtp.resend.com'
+    const portRaw = $secrets.get('PORT') || '465'
     const port = parseInt(portRaw, 10)
-    const user = $secrets.get('USER')
+    const user = $secrets.get('USER') || 'resend'
     const pass = $secrets.get('PASSWORD')
-    const senderEmail =
-      $secrets.get('SENDER_EMAIL') || (user && user.includes('@') ? user : 'onboarding@resend.dev')
+    const senderEmail = $secrets.get('SENDER_EMAIL') || 'onboarding@resend.dev'
 
-    if (!host || !user || !pass) {
+    if (!pass) {
       return e.badRequestError('Configuração Ausente', {
-        smtp: 'Configurações de SMTP (HOST, USER ou PASSWORD) não encontradas nos Secrets.',
+        smtp: 'Configuração de SMTP PASSWORD não encontrada nos Secrets. Defina a sua API Key do Resend.',
       })
     }
 
