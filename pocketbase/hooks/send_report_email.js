@@ -1,9 +1,9 @@
-// @deps nodemailer@6.9.13
 routerAdd(
   'POST',
   '/backend/v1/send-report-email',
-  async (e) => {
-    const nodemailer = require('nodemailer')
+  (e) => {
+    const pkg = 'mailer'
+    const mailer = require(pkg)
     const body = e.requestInfo().body
     if (!body.consultancyId || !body.email) {
       return e.badRequestError('Consultancy ID e E-mail são obrigatórios.')
@@ -148,33 +148,33 @@ routerAdd(
     }
 
     try {
-      const transporter = nodemailer.createTransport({
-        host: host,
-        port: port,
-        secure: port === 465,
-        auth: {
-          user: user,
-          pass: pass,
+      const message = new mailer.Message({
+        from: {
+          address: user,
+          name: 'Consultoria Express Senac',
         },
-      })
-
-      const info = await transporter.sendMail({
-        from: `"Consultoria Express Senac" <${user}>`,
-        to: body.email,
+        to: [{ address: body.email }],
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
 
+      const client = new mailer.SmtpClient({
+        host: host,
+        port: port,
+        username: user,
+        password: pass,
+      })
+
+      client.send(message)
+
       $app
         .logger()
         .info(
-          'Email enviado com sucesso via SMTP',
+          'Email enviado com sucesso via SmtpClient',
           'consultancyId',
           body.consultancyId,
           'to',
           body.email,
-          'messageId',
-          info.messageId,
         )
 
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
