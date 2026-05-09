@@ -57,7 +57,9 @@ export default function ResumoPage() {
 
       toast({
         title: errorMsg,
-        description: detailMsg ? String(detailMsg) : 'Verifique os logs ou a conexão SMTP.',
+        description: detailMsg
+          ? `${String(detailMsg)} (Verifique o Bug Scanner para mais detalhes)`
+          : 'Verifique o Bug Scanner ou a conexão SMTP.',
         variant: 'destructive',
       })
     } finally {

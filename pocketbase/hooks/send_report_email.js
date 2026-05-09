@@ -142,11 +142,11 @@ routerAdd(
       </div>
     `
 
-    const host = $secrets.get('SMTP_HOST') || $secrets.get('HOST')
-    const portRaw = $secrets.get('SMTP_PORT') || $secrets.get('PORT') || '587'
+    const host = $secrets.get('HOST')
+    const portRaw = $secrets.get('PORT') || '587'
     const port = parseInt(portRaw, 10)
-    const user = $secrets.get('SMTP_USER') || $secrets.get('USER')
-    const pass = $secrets.get('SMTP_PASS') || $secrets.get('PASSWORD')
+    const user = $secrets.get('USER')
+    const pass = $secrets.get('PASSWORD')
 
     if (!host || !user || !pass) {
       return e.badRequestError('Configuração Ausente', {
@@ -165,13 +165,13 @@ routerAdd(
         html: html,
       })
 
-      // O cliente SMTP interno do PocketBase avalia a porta automaticamente:
-      // se port === 465, usa SSL (tls.Dial). Se 587, usa STARTTLS via net/smtp.
+      // O cliente SMTP interno avalia a porta automaticamente ou via configuração explícita
       const client = new mailer.SmtpClient({
         host: host,
         port: port,
         username: user,
         password: pass,
+        tls: port === 465, // Explicitly handle secure connections (SSL/TLS for 465, STARTTLS otherwise)
       })
 
       client.send(message)
@@ -219,38 +219,44 @@ routerAdd(
       ) {
         errorCategory = 'Falha de Autenticação'
         errorDetail =
-          'Credenciais SMTP inválidas. Verifique o usuário e senha configurados nos Secrets.'
+          'Credenciais SMTP inválidas. Verifique o usuário e senha configurados nos Secrets. Detalhe: ' +
+          errMsg
       } else if (lowerErr.includes('timeout') || lowerErr.includes('deadline')) {
         errorCategory = 'Tempo Limite de Conexão'
         errorDetail =
-          'O servidor SMTP demorou muito para responder. Verifique a porta e as configurações de rede.'
+          'O servidor SMTP demorou muito para responder. Verifique a porta e as configurações de rede. Detalhe: ' +
+          errMsg
       } else if (
         lowerErr.includes('connection refused') ||
         lowerErr.includes('no such host') ||
         lowerErr.includes('network is unreachable')
       ) {
         errorCategory = 'Conexão Recusada'
-        errorDetail = 'Não foi possível conectar ao servidor SMTP. Verifique o host e a porta.'
+        errorDetail =
+          'Não foi possível conectar ao servidor SMTP. Verifique o host e a porta. Detalhe: ' +
+          errMsg
       } else if (
         lowerErr.includes('tls') ||
         lowerErr.includes('certificate') ||
         lowerErr.includes('handshake')
       ) {
         errorCategory = 'Erro de SSL/TLS'
-        errorDetail = 'Falha na negociação de segurança com o servidor SMTP (SSL/TLS).'
+        errorDetail =
+          'Falha na negociação de segurança com o servidor SMTP (SSL/TLS). Detalhe: ' + errMsg
       } else if (
         lowerErr.includes('sender address rejected') ||
         lowerErr.includes('not owned by user')
       ) {
         errorCategory = 'Remetente Rejeitado'
         errorDetail =
-          'O endereço de remetente foi rejeitado pelo servidor SMTP. Certifique-se de que o usuário fornecido nos secrets coincide com o domínio ou remetente permitido.'
+          'O endereço de remetente foi rejeitado pelo servidor SMTP. Certifique-se de que o usuário fornecido nos secrets coincide com o domínio ou remetente permitido. Detalhe: ' +
+          errMsg
       } else {
         errorCategory = 'Erro SMTP Desconhecido'
         errorDetail = 'O servidor SMTP retornou um erro não tratado: ' + errMsg
       }
 
-      return e.badRequestError(errorCategory, { smtp: errorDetail })
+      return e.badRequestError(errorCategory, { smtp: errorDetail, rawError: errMsg })
     }
   },
   $apis.requireAuth(),
