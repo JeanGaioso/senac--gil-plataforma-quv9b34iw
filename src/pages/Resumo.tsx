@@ -1,146 +1,57 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
+import { sendReportEmail } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  Printer,
-  RefreshCcw,
-  Briefcase,
-  FileText,
-  CheckCircle,
-  Download,
-  ArrowLeft,
-} from 'lucide-react'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
+import { Printer, RefreshCcw, Briefcase, FileText, Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 
 export default function ResumoPage() {
   const { session, resetSession } = useSessionStore()
   const navigate = useNavigate()
+  const { toast } = useToast()
+
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [clientEmail, setClientEmail] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
 
   const handleNewSession = () => {
     resetSession()
     navigate('/')
   }
 
-  const exportToWord = () => {
-    const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head>
-      <meta charset='utf-8'>
-      <title>Senac-Ágil Canvas</title>
-      <style>
-        @page { size: A4; margin: 1cm; }
-        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.2; margin: 0; padding: 0; font-size: 10pt; }
-        .header-bg { background-color: #004BB5; color: #ffffff; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
-        .header-bg h1 { margin: 0; color: #ffffff; font-size: 16px; text-transform: uppercase; }
-        .header-bg p { margin: 2px 0 0 0; color: #ffffff; font-size: 11px; opacity: 0.9; }
-        h1, h2, h3, h4 { color: #004BB5; margin-top: 0; margin-bottom: 4px; }
-        .text-secondary { color: #F7941E !important; }
-        .bg-secondary { background-color: #F7941E; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-right: 6px; }
-        .bg-primary { background-color: #004BB5; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; margin-right: 6px; }
-        .section { margin-bottom: 10px; }
-        .section h2 { font-size: 13px; margin-bottom: 6px; }
-        .grid { display: table; width: 100%; table-layout: fixed; margin-bottom: 6px; }
-        .col { display: table-cell; padding-right: 10px; vertical-align: top; width: 33%; }
-        .col h4 { font-size: 11px; margin-bottom: 2px; }
-        .col p { font-size: 10pt; margin-top: 0; margin-bottom: 0; }
-        .box { background-color: #f4f8fb; padding: 8px; border-left: 3px solid #004BB5; margin: 6px 0; border-radius: 0 6px 6px 0; }
-        .box h3 { font-size: 12px; margin-bottom: 4px; }
-        .box p { font-size: 10pt; margin: 0; font-weight: bold; }
-        .box-secondary { background-color: #fff6e8; padding: 8px; border-left: 3px solid #F7941E; margin: 6px 0; border-radius: 0 6px 6px 0; }
-        .box-secondary h3 { font-size: 12px; margin-bottom: 4px; }
-        .box-secondary p { font-size: 10pt; margin: 0; font-weight: bold; }
-        hr { border: 0; border-bottom: 1px solid rgba(0,75,181,0.2); margin: 10px 0; }
-      </style>
-    </head><body>`
-
-    const footer = `</body></html>`
-
-    const content = `
-      <div class="header-bg">
-        <h1>Canvas Senac-Ágil</h1>
-        <p>Metodologia Sentir, Estruturar, Escalar</p>
-        <div style="margin-top: 6px; font-size: 10px;">
-          <p style="margin: 0;"><strong>Cliente:</strong> ${session.clientName || 'Não informado'} | <strong>Consultor:</strong> ${session.consultantName || 'Não informado'} | <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
-        </div>
-      </div>
-      
-      <div class="section">
-        <h2><span class="bg-primary">1</span> Sentir (Diagnóstico)</h2>
-        <div class="grid">
-          <div class="col">
-            <h4>Fato</h4>
-            <p>${session.fato || 'Não preenchido'}</p>
-          </div>
-          <div class="col">
-            <h4>Dor</h4>
-            <p>${session.dor || 'Não preenchido'}</p>
-          </div>
-          <div class="col">
-            <h4>Desejo</h4>
-            <p>${session.desejo || 'Não preenchido'}</p>
-          </div>
-        </div>
-      </div>
-
-      <hr />
-
-      <div class="section">
-        <h2><span class="bg-primary">2</span> Estruturar (Estratégia)</h2>
-        <div class="grid">
-          <div class="col">
-            <h4>Pontos Fortes</h4>
-            <p>${session.strengths || 'Não preenchido'}</p>
-          </div>
-          <div class="col">
-            <h4>Fraquezas</h4>
-            <p>${session.weaknesses || 'Não preenchido'}</p>
-          </div>
-          <div class="col">
-            <h4>Ameaças / Riscos</h4>
-            <p>${session.threats || 'Não preenchido'}</p>
-          </div>
-        </div>
-        <div class="box">
-          <h3>Tarefa de Ouro</h3>
-          <p>${session.goldenTask || 'Não preenchido'}</p>
-        </div>
-      </div>
-
-      <hr />
-
-      <div class="section">
-        <h2 class="text-secondary"><span class="bg-secondary">3</span> Escalar (Execução)</h2>
-        ${
-          (session.plan || [])
-            .filter((p: any) => p.selected)
-            .map(
-              (p: any) => `
-          <div class="box-secondary">
-            <h3 class="text-secondary">${p.title} (${p.timeframe})</h3>
-            <p>${p.description}</p>
-          </div>
-        `,
-            )
-            .join('') ||
-          `
-          <div class="box-secondary">
-            <h3 class="text-secondary">Micro-Tarefa 24h</h3>
-            <p>${session.microTarefa || 'Não preenchido'}</p>
-          </div>
-        `
-        }
-      </div>
-    `
-
-    const sourceHTML = header + content + footer
-    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `Senac_Agil_Canvas_${session.clientName ? session.clientName.replace(/\s+/g, '_') : 'Cliente'}.doc`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const handleSendEmail = async () => {
+    if (!clientEmail) {
+      toast({ title: 'E-mail obrigatório', variant: 'destructive' })
+      return
+    }
+    setSendingEmail(true)
+    try {
+      if (session.consultancyId) {
+        await sendReportEmail(session.consultancyId, clientEmail)
+      } else {
+        throw new Error('Consultancy ID not found')
+      }
+      toast({ title: 'E-mail enviado com sucesso!' })
+      setEmailOpen(false)
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Erro ao enviar e-mail', variant: 'destructive' })
+    } finally {
+      setSendingEmail(false)
+    }
   }
 
   const Section = ({
@@ -195,14 +106,14 @@ export default function ResumoPage() {
               onClick={() => window.print()}
               className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
             >
-              <Printer className="mr-2 w-4 h-4" /> PDF
+              <Printer className="mr-2 w-4 h-4" /> Baixar PDF
             </Button>
             <Button
               variant="outline"
-              onClick={exportToWord}
+              onClick={() => setEmailOpen(true)}
               className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
             >
-              <Download className="mr-2 w-4 h-4" /> Word
+              <Mail className="mr-2 w-4 h-4" /> Enviar E-mail
             </Button>
             <Button
               onClick={handleNewSession}
@@ -218,7 +129,7 @@ export default function ResumoPage() {
             <div>
               <h2 className="text-2xl print:text-lg font-bold tracking-tight uppercase flex items-center gap-2">
                 <span className="w-1.5 h-6 print:h-4 bg-secondary rounded-full inline-block mr-1"></span>
-                Canvas Senac-Ágil
+                Consultoria Express Senac
               </h2>
               <p className="opacity-90 mt-1 pl-3.5 print:text-[10px] text-sm">
                 Metodologia Sentir, Estruturar, Escalar
@@ -237,7 +148,7 @@ export default function ResumoPage() {
             </div>
           </div>
 
-          <CardContent className="p-6 print:p-3 space-y-6 print:space-y-3">
+          <CardContent className="p-6 print:p-3 space-y-6 print:space-y-4">
             <div>
               <h3 className="text-lg print:text-sm font-bold text-primary mb-3 print:mb-2 flex items-center gap-2">
                 <span className="bg-primary text-white w-5 h-5 print:w-4 print:h-4 rounded-full inline-flex items-center justify-center text-xs print:text-[10px]">
@@ -246,9 +157,9 @@ export default function ResumoPage() {
                 Sentir (Diagnóstico)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-3">
-                <Section title="Fato" content={session.fato} icon={FileText} />
-                <Section title="Dor" content={session.dor} icon={FileText} />
-                <Section title="Desejo" content={session.desejo} icon={FileText} />
+                <Section title="Fato" content={session.fato || ''} icon={FileText} />
+                <Section title="Dor" content={session.dor || ''} icon={FileText} />
+                <Section title="Desejo" content={session.desejo || ''} icon={FileText} />
               </div>
             </div>
 
@@ -261,20 +172,87 @@ export default function ResumoPage() {
                 </span>
                 Estruturar (Estratégia)
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-3 mb-4 print:mb-2">
-                <Section
-                  title="Pontos Fortes"
-                  content={session.strengths || ''}
-                  icon={CheckCircle}
-                />
-                <Section title="Fraquezas" content={session.weaknesses || ''} icon={CheckCircle} />
-                <Section
-                  title="Ameaças / Riscos"
-                  content={session.threats || ''}
-                  icon={CheckCircle}
-                />
+
+              <div className="grid grid-cols-[30px_1fr_1fr] md:grid-cols-[40px_1fr_1fr] gap-1 md:gap-2 mb-4 print:mb-2 print:gap-1 max-w-4xl mx-auto">
+                <div className="col-start-2 bg-[#e6e6e6] text-slate-700 font-bold text-center py-1 md:py-2 rounded-t-lg text-xs md:text-sm print:text-[10px] print:py-1">
+                  Fatores positivos
+                </div>
+                <div className="col-start-3 bg-[#b3b3b3] text-slate-700 font-bold text-center py-1 md:py-2 rounded-t-lg text-xs md:text-sm print:text-[10px] print:py-1">
+                  Fatores negativos
+                </div>
+
+                <div
+                  className="row-start-2 col-start-1 bg-[#e6e6e6] text-slate-700 font-bold flex items-center justify-center rounded-l-lg print:text-[10px] text-xs print:px-0"
+                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                >
+                  Fatores internos
+                </div>
+
+                <div className="row-start-2 col-start-2 bg-[#15B5C1] p-2 md:p-3 print:p-2 rounded-tl-lg flex flex-col gap-1">
+                  <div className="flex items-center text-white mb-1">
+                    <span className="text-2xl md:text-3xl font-black mr-1.5 print:text-xl">S</span>
+                    <div className="leading-tight">
+                      <span className="font-bold text-xs md:text-sm block print:text-[10px]">
+                        Strengths
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-white text-xs md:text-sm whitespace-pre-wrap print:text-[10px] leading-tight">
+                    {session.strengths || 'Não preenchido'}
+                  </p>
+                </div>
+
+                <div className="row-start-2 col-start-3 bg-[#859D3D] p-2 md:p-3 print:p-2 rounded-tr-lg flex flex-col gap-1">
+                  <div className="flex items-center text-white mb-1">
+                    <span className="text-2xl md:text-3xl font-black mr-1.5 print:text-xl">W</span>
+                    <div className="leading-tight">
+                      <span className="font-bold text-xs md:text-sm block print:text-[10px]">
+                        Weaknesses
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-white text-xs md:text-sm whitespace-pre-wrap print:text-[10px] leading-tight">
+                    {session.weaknesses || 'Não preenchido'}
+                  </p>
+                </div>
+
+                <div
+                  className="row-start-3 col-start-1 bg-[#b3b3b3] text-slate-700 font-bold flex items-center justify-center rounded-l-lg py-2 print:text-[10px] text-xs print:px-0"
+                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                >
+                  Fatores externos
+                </div>
+
+                <div className="row-start-3 col-start-2 bg-[#F58220] p-2 md:p-3 print:p-2 rounded-bl-lg flex flex-col gap-1">
+                  <div className="flex items-center text-white mb-1">
+                    <span className="text-2xl md:text-3xl font-black mr-1.5 print:text-xl">O</span>
+                    <div className="leading-tight">
+                      <span className="font-bold text-xs md:text-sm block print:text-[10px]">
+                        Opportunities
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-white text-xs md:text-sm whitespace-pre-wrap print:text-[10px] leading-tight">
+                    {session.opportunities || 'Não preenchido'}
+                  </p>
+                </div>
+
+                <div className="row-start-3 col-start-3 bg-[#E32D43] p-2 md:p-3 print:p-2 rounded-br-lg flex flex-col gap-1">
+                  <div className="flex items-center text-white mb-1">
+                    <span className="text-2xl md:text-3xl font-black mr-1.5 print:text-xl">T</span>
+                    <div className="leading-tight">
+                      <span className="font-bold text-xs md:text-sm block print:text-[10px]">
+                        Threats
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-white text-xs md:text-sm whitespace-pre-wrap print:text-[10px] leading-tight">
+                    {session.threats || 'Não preenchido'}
+                  </p>
+                </div>
               </div>
-              <div className="bg-primary/5 rounded-lg p-4 print:p-2.5 border-l-4 border-primary">
+
+              <div className="bg-primary/5 rounded-lg p-4 print:p-2.5 border-l-4 border-primary max-w-4xl mx-auto">
                 <h4 className="text-base print:text-[12px] font-bold text-primary flex items-center gap-2 mb-1.5 print:mb-1">
                   <Briefcase className="w-4 h-4 print:w-3 print:h-3 text-secondary" /> Tarefa de
                   Ouro
@@ -294,7 +272,7 @@ export default function ResumoPage() {
                 </span>
                 Escalar (Execução)
               </h3>
-              <div className="grid grid-cols-1 gap-4 print:gap-2">
+              <div className="grid grid-cols-1 gap-4 print:gap-2 max-w-4xl mx-auto">
                 {session.plan && session.plan.filter((p: any) => p.selected).length > 0 ? (
                   session.plan
                     .filter((p: any) => p.selected)
@@ -332,9 +310,48 @@ export default function ResumoPage() {
         </Card>
 
         <div className="text-center text-[9px] text-muted-foreground print:block hidden mt-2 font-medium">
-          Gerado via Plataforma Senac-Ágil | Tempo de Intervenção: 20 min
+          Gerado via Plataforma Consultoria Express Senac | Tempo de Intervenção: 20 min
         </div>
       </div>
+
+      <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Enviar relatório por E-mail</DialogTitle>
+            <DialogDescription>
+              Insira o e-mail do cliente para enviar o relatório da consultoria em PDF.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email" className="text-left">
+                E-mail do Cliente
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                placeholder="cliente@exemplo.com"
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailOpen(false)} disabled={sendingEmail}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSendEmail} disabled={sendingEmail}>
+              {sendingEmail ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4 mr-2" />
+              )}
+              Enviar E-mail
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

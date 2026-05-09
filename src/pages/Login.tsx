@@ -43,7 +43,9 @@ export default function Login() {
           <div className="mx-auto w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-2">
             <span className="text-white font-bold text-2xl">S</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Senac-Ágil</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">
+            Consultoria Express Senac
+          </CardTitle>
           <CardDescription>Faça login para gerenciar suas intervenções</CardDescription>
         </CardHeader>
         <CardContent>

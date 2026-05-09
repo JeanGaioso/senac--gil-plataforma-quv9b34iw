@@ -15,6 +15,13 @@ export const generateGoldenTasks = (data: { swot?: any; sentir_data?: any }) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
+export const sendReportEmail = (consultancyId: string, email: string) =>
+  pb.send('/backend/v1/send-report-email', {
+    method: 'POST',
+    body: JSON.stringify({ consultancyId, email }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+
 export const generateExecutionPlan = (data: {
   consultantName?: string
   clientName?: string

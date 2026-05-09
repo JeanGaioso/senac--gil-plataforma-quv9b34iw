@@ -125,10 +125,12 @@ export default function EscalarPage() {
       return
     }
 
+    const selectedPlans = plan.filter((p) => p.selected)
+
     if (session.consultancyId) {
       try {
         await updateConsultancy(session.consultancyId, {
-          escalar_data: { plan },
+          escalar_data: { plan: selectedPlans },
           status: 'completed',
         })
       } catch (error) {
@@ -139,7 +141,6 @@ export default function EscalarPage() {
     }
 
     // Keep microTarefa synced for any backward compatibility in Resumo
-    const selectedPlans = plan.filter((p) => p.selected)
     updateSession({ plan, microTarefa: selectedPlans[0]?.title || plan[0]?.title } as any)
     finishSession()
     navigate('/resumo')

@@ -123,41 +123,89 @@ export default function EstruturarPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1 bg-emerald-50/50 p-3 rounded border border-emerald-100 shadow-sm">
-              <Label className="text-emerald-700 font-bold">Forças (Strengths)</Label>
+          <div className="grid grid-cols-[40px_1fr_1fr] md:grid-cols-[60px_1fr_1fr] gap-1 md:gap-2 mt-4">
+            <div className="col-start-2 bg-[#e6e6e6] text-slate-700 font-bold text-center py-2 rounded-t-xl text-sm md:text-base">
+              Fatores positivos
+            </div>
+            <div className="col-start-3 bg-[#b3b3b3] text-slate-700 font-bold text-center py-2 rounded-t-xl text-sm md:text-base">
+              Fatores negativos
+            </div>
+
+            <div
+              className="row-start-2 col-start-1 bg-[#e6e6e6] text-slate-700 font-bold flex items-center justify-center rounded-l-xl text-xs md:text-sm"
+              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+            >
+              Fatores internos
+            </div>
+
+            <div className="row-start-2 col-start-2 bg-[#15B5C1] p-3 md:p-4 rounded-tl-xl shadow-sm flex flex-col gap-2">
+              <div className="flex items-center text-white">
+                <span className="text-4xl md:text-5xl font-black mr-2">S</span>
+                <div className="leading-tight">
+                  <span className="font-bold text-sm md:text-lg block">Strengths</span>
+                  <span className="text-xs md:text-sm">(força)</span>
+                </div>
+              </div>
               <Textarea
                 value={strengths}
                 onChange={(e) => setStrengths(e.target.value)}
-                className="bg-white border-emerald-200 focus-visible:ring-emerald-500 min-h-[100px] resize-none"
-                placeholder="Fatores internos positivos (ex: equipe engajada, caixa positivo)..."
+                className="flex-1 bg-white/90 border-transparent focus-visible:ring-cyan-600 text-sm min-h-[100px] resize-none placeholder:text-slate-400"
+                placeholder="Fatores internos positivos (ex: equipe engajada)..."
               />
             </div>
-            <div className="space-y-1 bg-rose-50/50 p-3 rounded border border-rose-100 shadow-sm">
-              <Label className="text-rose-700 font-bold">Fraquezas (Weaknesses)</Label>
+
+            <div className="row-start-2 col-start-3 bg-[#859D3D] p-3 md:p-4 rounded-tr-xl shadow-sm flex flex-col gap-2">
+              <div className="flex items-center text-white">
+                <span className="text-4xl md:text-5xl font-black mr-2">W</span>
+                <div className="leading-tight">
+                  <span className="font-bold text-sm md:text-lg block">Weaknesses</span>
+                  <span className="text-xs md:text-sm">(fraquezas)</span>
+                </div>
+              </div>
               <Textarea
                 value={weaknesses}
                 onChange={(e) => setWeaknesses(e.target.value)}
-                className="bg-white border-rose-200 focus-visible:ring-rose-500 min-h-[100px] resize-none"
-                placeholder="Fatores internos a melhorar (ex: processos desestruturados)..."
+                className="flex-1 bg-white/90 border-transparent focus-visible:ring-lime-700 text-sm min-h-[100px] resize-none placeholder:text-slate-400"
+                placeholder="Fatores internos a melhorar (ex: processos)..."
               />
             </div>
-            <div className="space-y-1 bg-blue-50/50 p-3 rounded border border-blue-100 shadow-sm">
-              <Label className="text-blue-700 font-bold">Oportunidades (Opportunities)</Label>
+
+            <div
+              className="row-start-3 col-start-1 bg-[#b3b3b3] text-slate-700 font-bold flex items-center justify-center rounded-l-xl py-4 text-xs md:text-sm"
+              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+            >
+              Fatores externos
+            </div>
+
+            <div className="row-start-3 col-start-2 bg-[#F58220] p-3 md:p-4 rounded-bl-xl shadow-sm flex flex-col gap-2">
+              <div className="flex items-center text-white">
+                <span className="text-4xl md:text-5xl font-black mr-2">O</span>
+                <div className="leading-tight">
+                  <span className="font-bold text-sm md:text-lg block">Opportunities</span>
+                  <span className="text-xs md:text-sm">(oportunidades)</span>
+                </div>
+              </div>
               <Textarea
                 value={opportunities}
                 onChange={(e) => setOpportunities(e.target.value)}
-                className="bg-white border-blue-200 focus-visible:ring-blue-500 min-h-[100px] resize-none"
-                placeholder="Fatores externos favoráveis (ex: expansão do mercado)..."
+                className="flex-1 bg-white/90 border-transparent focus-visible:ring-orange-600 text-sm min-h-[100px] resize-none placeholder:text-slate-400"
+                placeholder="Fatores externos favoráveis (ex: mercado)..."
               />
             </div>
-            <div className="space-y-1 bg-amber-50/50 p-3 rounded border border-amber-100 shadow-sm">
-              <Label className="text-amber-700 font-bold">Ameaças (Threats)</Label>
+
+            <div className="row-start-3 col-start-3 bg-[#E32D43] p-3 md:p-4 rounded-br-xl shadow-sm flex flex-col gap-2">
+              <div className="flex items-center text-white">
+                <span className="text-4xl md:text-5xl font-black mr-2">T</span>
+                <div className="leading-tight">
+                  <span className="font-bold text-sm md:text-lg block">Threats</span>
+                  <span className="text-xs md:text-sm">(ameaças)</span>
+                </div>
+              </div>
               <Textarea
                 value={threats}
                 onChange={(e) => setThreats(e.target.value)}
-                className="bg-white border-amber-200 focus-visible:ring-amber-500 min-h-[100px] resize-none"
-                placeholder="Fatores externos de risco (ex: concorrência agressiva)..."
+                className="flex-1 bg-white/90 border-transparent focus-visible:ring-red-600 text-sm min-h-[100px] resize-none placeholder:text-slate-400"
+                placeholder="Fatores externos de risco (ex: concorrência)..."
               />
             </div>
           </div>

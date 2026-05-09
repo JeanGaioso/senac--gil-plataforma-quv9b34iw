@@ -87,7 +87,7 @@ export default function Layout() {
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="text-xl font-bold text-primary">Senac-Ágil</span>
+            <span className="text-xl font-bold text-primary">Consultoria Express Senac</span>
           </div>
           <div className="flex items-center gap-4">
             <TimerDisplay />
