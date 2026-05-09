@@ -9,6 +9,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Index from './pages/Index'
+import Dashboard from './pages/Dashboard'
 import Sentir from './pages/Sentir'
 import Estruturar from './pages/Estruturar'
 import Escalar from './pages/Escalar'
@@ -39,7 +40,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/nova" element={<Index />} />
               <Route path="/sentir" element={<Sentir />} />
               <Route path="/estruturar" element={<Estruturar />} />
               <Route path="/escalar" element={<Escalar />} />

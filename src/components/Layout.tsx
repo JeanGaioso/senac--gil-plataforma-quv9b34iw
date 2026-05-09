@@ -66,7 +66,8 @@ export default function Layout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!session.clientName && location.pathname !== '/') {
+    const publicPaths = ['/', '/nova']
+    if (!session.clientName && !publicPaths.includes(location.pathname)) {
       navigate('/')
     }
   }, [session.clientName, location.pathname, navigate])
@@ -99,6 +100,7 @@ export default function Layout() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/')}>Meus Projetos</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="w-4 h-4 mr-2" /> Sair
                   </DropdownMenuItem>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-09T16:17:26.132Z",
+  "generatedAt": "2026-05-09T16:56:22.862Z",
   "collections": [
     {
       "name": "users",
@@ -120,7 +120,11 @@
           "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_consultancies_user` ON `consultancies` (user)",
+        "CREATE INDEX `idx_consultancies_status` ON `consultancies` (status)",
+        "CREATE INDEX `idx_consultancies_created` ON `consultancies` (created)"
+      ]
     }
   ]
 }

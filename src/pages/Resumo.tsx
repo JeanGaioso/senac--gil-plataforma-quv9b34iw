@@ -89,15 +89,15 @@ export default function ResumoPage() {
         <div class="grid">
           <div class="col">
             <h4>Pontos Fortes</h4>
-            <p>${session.pontosFortes || 'Não preenchido'}</p>
+            <p>${session.strengths || 'Não preenchido'}</p>
           </div>
           <div class="col">
-            <h4>Riscos</h4>
-            <p>${session.riscos || 'Não preenchido'}</p>
+            <h4>Fraquezas</h4>
+            <p>${session.weaknesses || 'Não preenchido'}</p>
           </div>
           <div class="col">
-            <h4>KPIs (Métricas)</h4>
-            <p>${session.kpis || 'Não preenchido'}</p>
+            <h4>Ameaças / Riscos</h4>
+            <p>${session.threats || 'Não preenchido'}</p>
           </div>
         </div>
         <div class="box">
@@ -247,9 +247,17 @@ export default function ResumoPage() {
                 Estruturar (Estratégia)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-5 print:gap-3 mb-4 print:mb-2">
-                <Section title="Pontos Fortes" content={session.pontosFortes} icon={CheckCircle} />
-                <Section title="Riscos" content={session.riscos} icon={CheckCircle} />
-                <Section title="KPIs (Métricas)" content={session.kpis} icon={CheckCircle} />
+                <Section
+                  title="Pontos Fortes"
+                  content={session.strengths || ''}
+                  icon={CheckCircle}
+                />
+                <Section title="Fraquezas" content={session.weaknesses || ''} icon={CheckCircle} />
+                <Section
+                  title="Ameaças / Riscos"
+                  content={session.threats || ''}
+                  icon={CheckCircle}
+                />
               </div>
               <div className="bg-primary/5 rounded-lg p-4 print:p-2.5 border-l-4 border-primary">
                 <h4 className="text-base print:text-[12px] font-bold text-primary flex items-center gap-2 mb-1.5 print:mb-1">

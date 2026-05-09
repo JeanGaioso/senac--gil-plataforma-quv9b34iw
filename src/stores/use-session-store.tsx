@@ -1,93 +1,78 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
-export type SessionData = {
-  consultancyId: string | null
-  clientName: string
-  consultantName: string
-  fato: string
-  dor: string
-  desejo: string
-  goldenTask: string
-  pontosFortes: string
-  riscos: string
-  kpis: string
-  microTarefa: string
-  startTime: number | null
-  isFinished: boolean
+export interface SessionData {
+  consultancyId?: string
+  clientName?: string
+  consultantName?: string
+  startTime?: number
+  isFinished?: boolean
+  status?: 'draft' | 'completed'
+  fato?: string
+  dor?: string
+  desejo?: string
+  strengths?: string
+  weaknesses?: string
+  opportunities?: string
+  threats?: string
+  goldenTask?: string
+  plan?: any[]
+  microTarefa?: string
+  pontosFortes?: string
+  riscos?: string
+  kpis?: string
 }
 
-const defaultState: SessionData = {
-  consultancyId: null,
-  clientName: '',
-  consultantName: '',
-  fato: '',
-  dor: '',
-  desejo: '',
-  goldenTask: '',
-  pontosFortes: '',
-  riscos: '',
-  kpis: '',
-  microTarefa: '',
-  startTime: null,
-  isFinished: false,
-}
-
-type SessionContextType = {
+interface SessionContextType {
   session: SessionData
+  startSession: (clientName: string, consultantName: string) => void
   updateSession: (data: Partial<SessionData>) => void
-  startSession: (client: string, consultant: string) => void
   finishSession: () => void
   resetSession: () => void
+  loadSession: (data: SessionData) => void
 }
 
-const SessionContext = createContext<SessionContextType | null>(null)
+const SessionContext = createContext<SessionContextType | undefined>(undefined)
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<SessionData>(() => {
-    try {
-      const saved = localStorage.getItem('senac-agil-session')
-      return saved ? JSON.parse(saved) : defaultState
-    } catch {
-      return defaultState
-    }
-  })
+export const useSessionStore = () => {
+  const context = useContext(SessionContext)
+  if (!context) throw new Error('useSessionStore must be used within a SessionProvider')
+  return context
+}
 
-  useEffect(() => {
-    localStorage.setItem('senac-agil-session', JSON.stringify(session))
-  }, [session])
+export const SessionProvider = ({ children }: { children: ReactNode }) => {
+  const [session, setSession] = useState<SessionData>({})
+
+  const startSession = (clientName: string, consultantName: string) => {
+    setSession({
+      clientName,
+      consultantName,
+      startTime: Date.now(),
+      isFinished: false,
+      status: 'draft',
+    })
+  }
 
   const updateSession = (data: Partial<SessionData>) => {
     setSession((prev) => ({ ...prev, ...data }))
   }
 
-  const startSession = (client: string, consultant: string) => {
-    setSession({
-      ...defaultState,
-      clientName: client,
-      consultantName: consultant,
-      startTime: Date.now(),
-      isFinished: false,
-    })
+  const finishSession = () => {
+    setSession((prev) => ({ ...prev, isFinished: true, status: 'completed' }))
   }
 
-  const finishSession = () => updateSession({ isFinished: true })
-
   const resetSession = () => {
-    setSession(defaultState)
-    localStorage.removeItem('senac-agil-session')
+    setSession({})
+  }
+
+  const loadSession = (data: SessionData) => {
+    setSession(data)
   }
 
   return (
     <SessionContext.Provider
-      value={{ session, updateSession, startSession, finishSession, resetSession }}
+      value={{ session, startSession, updateSession, finishSession, resetSession, loadSession }}
     >
       {children}
     </SessionContext.Provider>
   )
-}
-
-export function useSessionStore() {
-  const context = useContext(SessionContext)
-  if (!context) throw new Error('useSessionStore must be used within SessionProvider')
-  return context
 }

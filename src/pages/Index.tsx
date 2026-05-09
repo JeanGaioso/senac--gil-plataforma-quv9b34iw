@@ -53,7 +53,16 @@ export default function IndexPage() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center animate-fade-in">
       <Card className="w-full max-w-md shadow-xl border-primary/20">
-        <CardHeader className="text-center space-y-2">
+        <CardHeader className="text-center space-y-2 relative pt-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute left-2 top-2"
+            onClick={() => navigate('/')}
+            type="button"
+          >
+            Voltar
+          </Button>
           <CardTitle className="text-3xl font-bold text-primary">Nova Intervenção</CardTitle>
           <CardDescription className="text-base">
             Inicie um diagnóstico ágil de 20 minutos focado em resultados rápidos e aplicáveis.

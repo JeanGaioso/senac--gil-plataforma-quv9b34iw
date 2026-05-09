@@ -45,7 +45,11 @@ export default function EstruturarPage() {
     try {
       const res = await generateGoldenTasks({
         swot: { strengths, weaknesses, opportunities, threats },
-        sentir_data: sessionData.sentir_data || {},
+        sentir_data: {
+          fato: sessionData.fato || '',
+          dor: sessionData.dor || '',
+          desejo: sessionData.desejo || '',
+        },
       })
       if (res.task) {
         setGoldenTask(res.task)
