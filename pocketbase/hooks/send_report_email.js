@@ -1,7 +1,9 @@
+// @deps nodemailer@6.9.13
 routerAdd(
   'POST',
   '/backend/v1/send-report-email',
   async (e) => {
+    const nodemailer = require('nodemailer')
     const body = e.requestInfo().body
     if (!body.consultancyId || !body.email) {
       return e.badRequestError('Consultancy ID e E-mail são obrigatórios.')
@@ -136,29 +138,49 @@ routerAdd(
       </div>
     `
 
+    const host = $secrets.get('HOST')
+    const port = parseInt($secrets.get('PORT') || '587', 10)
+    const user = $secrets.get('USER')
+    const pass = $secrets.get('PASSWORD')
+
+    if (!host || !user || !pass) {
+      return e.badRequestError('Configurações de SMTP ausentes nos Secrets do projeto.')
+    }
+
     try {
-      const message = new MailerMessage({
-        from: {
-          address: 'noreply@senac.br',
-          name: 'Consultoria Express Senac',
+      const transporter = nodemailer.createTransport({
+        host: host,
+        port: port,
+        secure: port === 465,
+        auth: {
+          user: user,
+          pass: pass,
         },
-        to: [{ address: body.email }],
+      })
+
+      const info = await transporter.sendMail({
+        from: `"Consultoria Express Senac" <${user}>`,
+        to: body.email,
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
 
-      $app.newMailClient().send(message)
-
       $app
         .logger()
-        .info('Email enviado com sucesso', 'consultancyId', body.consultancyId, 'to', body.email)
+        .info(
+          'Email enviado com sucesso via SMTP',
+          'consultancyId',
+          body.consultancyId,
+          'to',
+          body.email,
+          'messageId',
+          info.messageId,
+        )
+
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
     } catch (err) {
-      $app.logger().error('Erro ao enviar email', 'error', err.message || String(err))
-      return e.badRequestError(
-        'Falha ao enviar o e-mail. Verifique as configurações de e-mail da instância.',
-        { error: err.message },
-      )
+      $app.logger().error('Erro ao enviar email SMTP', 'error', err.message || String(err))
+      return e.badRequestError('Falha na autenticação ou conexão SMTP.', { error: err.message })
     }
   },
   $apis.requireAuth(),
