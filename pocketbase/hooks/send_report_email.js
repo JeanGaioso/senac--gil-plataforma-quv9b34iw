@@ -142,14 +142,15 @@ routerAdd(
       </div>
     `
 
-    const host = $secrets.get('HOST')
-    const port = parseInt($secrets.get('PORT') || '587', 10)
-    const user = $secrets.get('USER')
-    const pass = $secrets.get('PASSWORD')
+    const host = $secrets.get('SMTP_HOST') || $secrets.get('HOST')
+    const portRaw = $secrets.get('SMTP_PORT') || $secrets.get('PORT') || '587'
+    const port = parseInt(portRaw, 10)
+    const user = $secrets.get('SMTP_USER') || $secrets.get('USER')
+    const pass = $secrets.get('SMTP_PASS') || $secrets.get('PASSWORD')
 
     if (!host || !user || !pass) {
       return e.badRequestError('Configuração Ausente', {
-        smtp: 'HOST, USER ou PASSWORD não configurados nos Secrets.',
+        smtp: 'Configurações de SMTP (HOST, USER ou PASSWORD) não encontradas nos Secrets.',
       })
     }
 
@@ -188,9 +189,22 @@ routerAdd(
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
     } catch (err) {
       const errMsg = err ? err.message || String(err) : 'Erro desconhecido'
-      $app.logger().error('Erro ao enviar email SMTP', 'error', errMsg)
+      $app
+        .logger()
+        .error(
+          'Erro ao enviar email SMTP',
+          'error',
+          errMsg,
+          'host',
+          host,
+          'port',
+          port,
+          'user',
+          user,
+        )
 
-      let errorCategory = 'SMTP Dispatch Error'
+      let errorCategory = 'Erro ao enviar e-mail'
+      let errorDetail = errMsg
       const lowerErr = errMsg.toLowerCase()
 
       if (
@@ -199,26 +213,44 @@ routerAdd(
         lowerErr.includes('login') ||
         lowerErr.includes('535') ||
         lowerErr.includes('username') ||
-        lowerErr.includes('password')
+        lowerErr.includes('password') ||
+        lowerErr.includes('unrecognized') ||
+        lowerErr.includes('invalid')
       ) {
-        errorCategory = 'Authentication Failed'
+        errorCategory = 'Falha de Autenticação'
+        errorDetail =
+          'Credenciais SMTP inválidas. Verifique o usuário e senha configurados nos Secrets.'
       } else if (lowerErr.includes('timeout') || lowerErr.includes('deadline')) {
-        errorCategory = 'Connection Timeout'
+        errorCategory = 'Tempo Limite de Conexão'
+        errorDetail =
+          'O servidor SMTP demorou muito para responder. Verifique a porta e as configurações de rede.'
       } else if (
         lowerErr.includes('connection refused') ||
         lowerErr.includes('no such host') ||
         lowerErr.includes('network is unreachable')
       ) {
-        errorCategory = 'Connection Refused'
+        errorCategory = 'Conexão Recusada'
+        errorDetail = 'Não foi possível conectar ao servidor SMTP. Verifique o host e a porta.'
       } else if (
         lowerErr.includes('tls') ||
         lowerErr.includes('certificate') ||
         lowerErr.includes('handshake')
       ) {
-        errorCategory = 'SSL/TLS Error'
+        errorCategory = 'Erro de SSL/TLS'
+        errorDetail = 'Falha na negociação de segurança com o servidor SMTP (SSL/TLS).'
+      } else if (
+        lowerErr.includes('sender address rejected') ||
+        lowerErr.includes('not owned by user')
+      ) {
+        errorCategory = 'Remetente Rejeitado'
+        errorDetail =
+          'O endereço de remetente foi rejeitado pelo servidor SMTP. Certifique-se de que o usuário fornecido nos secrets coincide com o domínio ou remetente permitido.'
+      } else {
+        errorCategory = 'Erro SMTP Desconhecido'
+        errorDetail = 'O servidor SMTP retornou um erro não tratado: ' + errMsg
       }
 
-      return e.badRequestError(errorCategory, { smtp: errMsg })
+      return e.badRequestError(errorCategory, { smtp: errorDetail })
     }
   },
   $apis.requireAuth(),
