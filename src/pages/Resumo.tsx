@@ -41,7 +41,7 @@ export default function ResumoPage() {
     try {
       if (session.consultancyId) {
         await sendReportEmail(session.consultancyId, clientEmail)
-        toast({ title: `Relatório enviado com sucesso para ${clientEmail}!` })
+        toast({ title: `E-mail enviado com sucesso via Resend!` })
         setEmailOpen(false)
       } else {
         throw new Error('Consultancy ID not found')

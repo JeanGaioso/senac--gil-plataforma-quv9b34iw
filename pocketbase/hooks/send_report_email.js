@@ -147,6 +147,8 @@ routerAdd(
     const port = parseInt(portRaw, 10)
     const user = $secrets.get('USER')
     const pass = $secrets.get('PASSWORD')
+    const senderEmail =
+      $secrets.get('SENDER_EMAIL') || (user && user.includes('@') ? user : 'onboarding@resend.dev')
 
     if (!host || !user || !pass) {
       return e.badRequestError('Configuração Ausente', {
@@ -157,7 +159,7 @@ routerAdd(
     try {
       const message = new mailer.Message({
         from: {
-          address: user,
+          address: senderEmail,
           name: 'Consultoria Express Senac',
         },
         to: [{ address: body.email }],
