@@ -59,10 +59,21 @@ export default function EscalarPage() {
 
       if (res.plan && Array.isArray(res.plan)) {
         setPlan(res.plan)
+        updateSession({ plan: res.plan } as any)
+        if (session.consultancyId) {
+          try {
+            await updateConsultancy(session.consultancyId, {
+              escalar_data: { plan: res.plan },
+            })
+          } catch (dbError) {
+            console.error('Erro ao persistir Plano de Execução', dbError)
+          }
+        }
         toast({ title: 'Plano de Execução gerado com sucesso!' })
       }
     } catch (error: any) {
-      const errorMessage = error?.response?.message || 'Não foi possível conectar ao motor de IA.'
+      const errorMessage =
+        error?.response?.message || error?.message || 'Não foi possível conectar ao motor de IA.'
       toast({ title: 'Erro ao gerar Plano', description: errorMessage, variant: 'destructive' })
     } finally {
       setIsGenerating(false)

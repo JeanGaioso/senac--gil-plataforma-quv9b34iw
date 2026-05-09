@@ -21,60 +21,54 @@ NENHUM markdown, NENHUMA explicação adicional.`
 
     let task = `Integrar as forças mapeadas para neutralizar as ameaças e alcançar o objetivo principal em 30 dias.`
 
-    const url = $secrets.get('SKIP_AI_GATEWAY_URL')
-    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+    const apiKey = $secrets.get('OPENAI_API_KEY')
 
-    if (url && apiKey) {
-      try {
-        let endpoint = url
-        if (!endpoint.endsWith('/v1/chat/completions')) {
-          endpoint = endpoint + (endpoint.endsWith('/') ? '' : '/') + 'v1/chat/completions'
-        }
-
-        const res = $http.send({
-          url: endpoint,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + apiKey,
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: prompt }],
-          }),
-          timeout: 30,
-        })
-
-        const json = res.json
-        if (json && json.choices && json.choices.length > 0) {
-          const content = json.choices[0].message.content.trim()
-          try {
-            const parsed = JSON.parse(content)
-            if (parsed.task) {
-              task = parsed.task
-            } else {
-              task = content
-            }
-          } catch (err) {
-            const match = content.match(/\{[\s\S]*\}/)
-            if (match) {
-              try {
-                const parsedMatch = JSON.parse(match[0])
-                if (parsedMatch.task) task = parsedMatch.task
-              } catch (e2) {}
-            } else {
-              task = content.replace(/["*{}]/g, '').trim()
-            }
-          }
-        } else {
-          return e.internalServerError('Falha na resposta do motor de IA.')
-        }
-      } catch (err) {
-        $app.logger().error('AI Gateway Error (Golden Task)', 'error', err.message)
-        return e.internalServerError('Não foi possível conectar ao motor de IA.')
-      }
-    } else {
+    if (!apiKey) {
       return e.internalServerError('Configuração de IA ausente no servidor.')
+    }
+
+    try {
+      const res = $http.send({
+        url: 'https://api.openai.com/v1/chat/completions',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + apiKey,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+        }),
+        timeout: 30,
+      })
+
+      const json = res.json
+      if (json && json.choices && json.choices.length > 0) {
+        const content = json.choices[0].message.content.trim()
+        try {
+          const parsed = JSON.parse(content)
+          if (parsed.task) {
+            task = parsed.task
+          } else {
+            task = content
+          }
+        } catch (err) {
+          const match = content.match(/\{[\s\S]*\}/)
+          if (match) {
+            try {
+              const parsedMatch = JSON.parse(match[0])
+              if (parsedMatch.task) task = parsedMatch.task
+            } catch (e2) {}
+          } else {
+            task = content.replace(/["*{}]/g, '').trim()
+          }
+        }
+      } else {
+        return e.internalServerError('Falha na resposta do motor de IA.')
+      }
+    } catch (err) {
+      $app.logger().error('OpenAI API Error (Golden Task)', 'error', err.message)
+      return e.internalServerError('Não foi possível conectar ao motor de IA.')
     }
 
     return e.json(200, { task })

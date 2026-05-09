@@ -48,10 +48,22 @@ export default function EstruturarPage() {
       })
       if (res.task) {
         setGoldenTask(res.task)
+        updateSession({ goldenTask: res.task } as any)
+        if (session.consultancyId) {
+          try {
+            await updateConsultancy(session.consultancyId, {
+              tarefa_ouro: res.task,
+              estruturar_data: { strengths, weaknesses, opportunities, threats },
+            })
+          } catch (dbError) {
+            console.error('Erro ao persistir Tarefa de Ouro', dbError)
+          }
+        }
         toast({ title: 'Tarefa de Ouro gerada com sucesso!' })
       }
     } catch (error: any) {
-      const errorMessage = error?.response?.message || 'Não foi possível conectar ao motor de IA.'
+      const errorMessage =
+        error?.response?.message || error?.message || 'Não foi possível conectar ao motor de IA.'
       toast({
         title: 'Erro ao gerar Tarefa de Ouro',
         description: errorMessage,
