@@ -1,92 +1,17 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/use-session-store'
-import { sendReportEmail } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { Printer, RefreshCcw, Briefcase, FileText, Mail, ArrowLeft, Loader2 } from 'lucide-react'
+import { Printer, RefreshCcw, Briefcase, FileText, ArrowLeft } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 
 export default function ResumoPage() {
   const { session, resetSession } = useSessionStore()
   const navigate = useNavigate()
-  const { toast } = useToast()
-
-  const [sendingEmail, setSendingEmail] = useState(false)
 
   const handleNewSession = () => {
     resetSession()
     navigate('/')
-  }
-
-  const handleSendEmail = async () => {
-    if (!session.consultancyId) {
-      toast({
-        title: 'Cannot send report: Consultancy data is incomplete.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    const hasSentir = !!(session.fato && session.dor && session.desejo)
-    const hasEstruturar = !!(
-      session.strengths &&
-      session.weaknesses &&
-      session.opportunities &&
-      session.threats
-    )
-    const hasEscalar = !!((session.plan && session.plan.length > 0) || session.microTarefa)
-    const hasTarefaOuro = !!session.goldenTask
-
-    if (!hasSentir || !hasEstruturar || !hasEscalar || !hasTarefaOuro) {
-      toast({
-        title: 'Cannot send report: Consultancy data is incomplete.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setSendingEmail(true)
-    try {
-      await sendReportEmail(session.consultancyId)
-      toast({ title: 'Relatório enviado com sucesso para seu e-mail!' })
-    } catch (e: any) {
-      console.error(e)
-      const errorMsg = e.response?.message || e.message || 'Erro ao enviar e-mail'
-      const detailMsg =
-        e.response?.data?.smtp?.message ||
-        e.response?.data?.validation?.message ||
-        e.response?.data?.consultancy?.message ||
-        ''
-
-      if (detailMsg?.includes('SENDER_EMAIL not found in backend secrets')) {
-        toast({
-          title: 'Configuration Error: SENDER_EMAIL not found in backend secrets.',
-          variant: 'destructive',
-        })
-      } else if (detailMsg?.includes('Email Error: The sender domain is not verified in Resend')) {
-        toast({
-          title: 'Email Error: The sender domain is not verified in Resend.',
-          variant: 'destructive',
-        })
-      } else if (detailMsg?.includes('Cannot send report: Consultancy data is incomplete.')) {
-        toast({
-          title: 'Cannot send report: Consultancy data is incomplete.',
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Falha ao enviar o relatório. Por favor, tente novamente.',
-          description: detailMsg
-            ? `${String(detailMsg)}`
-            : 'Verifique o console ou a conexão SMTP.',
-          variant: 'destructive',
-        })
-      }
-    } finally {
-      setSendingEmail(false)
-    }
   }
 
   const Section = ({
@@ -142,22 +67,6 @@ export default function ResumoPage() {
               className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
             >
               <Printer className="mr-2 w-4 h-4" /> Baixar PDF
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSendEmail}
-              disabled={!session.consultancyId || sendingEmail}
-              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
-            >
-              {sendingEmail ? (
-                <>
-                  <Loader2 className="mr-2 w-4 h-4 animate-spin" /> Enviando...
-                </>
-              ) : (
-                <>
-                  <Mail className="mr-2 w-4 h-4" /> Enviar para meu E-mail
-                </>
-              )}
             </Button>
             <Button
               onClick={handleNewSession}
