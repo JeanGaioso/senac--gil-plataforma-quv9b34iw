@@ -50,8 +50,13 @@ export default function EstruturarPage() {
         setGoldenTask(res.task)
         toast({ title: 'Tarefa de Ouro gerada com sucesso!' })
       }
-    } catch (error) {
-      toast({ title: 'Erro ao gerar Tarefa de Ouro', variant: 'destructive' })
+    } catch (error: any) {
+      const errorMessage = error?.response?.message || 'Não foi possível conectar ao motor de IA.'
+      toast({
+        title: 'Erro ao gerar Tarefa de Ouro',
+        description: errorMessage,
+        variant: 'destructive',
+      })
     } finally {
       setIsGenerating(false)
     }

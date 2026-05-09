@@ -14,3 +14,15 @@ export const generateGoldenTasks = (data: { swot?: any }) =>
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
   })
+
+export const generateExecutionPlan = (data: {
+  consultantName?: string
+  clientName?: string
+  goldenTask?: string
+  swot?: any
+}) =>
+  pb.send('/backend/v1/generate-execution-plan', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  })

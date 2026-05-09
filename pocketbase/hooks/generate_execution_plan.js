@@ -1,25 +1,39 @@
 routerAdd(
   'POST',
-  '/backend/v1/generate-golden-tasks',
+  '/backend/v1/generate-execution-plan',
   (e) => {
     const body = e.requestInfo().body || {}
-    const swot = body.swot || {}
+    const { consultantName, clientName, goldenTask, swot } = body
 
-    const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar a "Tarefa de Ouro" (Golden Task) para um cliente.
-Análise SWOT:
-- Forças: ${swot.strengths || 'Não informado'}
-- Fraquezas: ${swot.weaknesses || 'Não informado'}
-- Oportunidades: ${swot.opportunities || 'Não informado'}
-- Ameaças: ${swot.threats || 'Não informado'}
+    const prompt = `Atue como um consultor estratégico Sênior. 
+Crie um Plano de Execução (Fase Escalar) pragmático para o cliente.
+Contexto:
+Consultor: ${consultantName || 'Não informado'}
+Cliente: ${clientName || 'Não informado'}
+Tarefa de Ouro (Objetivo Principal): ${goldenTask || 'Não informado'}
+Análise SWOT: 
+- Forças: ${swot?.strengths || 'N/A'}
+- Fraquezas: ${swot?.weaknesses || 'N/A'}
+- Oportunidades: ${swot?.opportunities || 'N/A'}
+- Ameaças: ${swot?.threats || 'N/A'}
 
-Gere APENAS UMA ÚNICA sugestão de "Tarefa de Ouro" altamente focada, contextual e baseada na metodologia SMART (Específica, Mensurável, Alcançável, Relevante e Temporal) baseada UNICAMENTE na análise SWOT fornecida.
-A Tarefa de Ouro é o objetivo principal derivado desta análise. Deve ser UMA ÚNICA FRASE, acionável e direta.
+Gere um plano de ação direto, focado na Tarefa de Ouro.
+Retorne APENAS um JSON no seguinte formato exato (NENHUM markdown, NENHUMA explicação adicional):
+{
+  "plan": [
+    { "title": "Título da ação", "description": "O que fazer detalhadamente", "timeframe": "24 horas" },
+    { "title": "Outra ação", "description": "Detalhes...", "timeframe": "7 dias" }
+  ]
+}
+A primeira ação DEVE ser uma micro-tarefa para as próximas 24 horas.`
 
-Retorne APENAS um JSON com o seguinte formato:
-{"task": "Sua sugestão de tarefa de ouro aqui"}
-NENHUM markdown, NENHUMA explicação adicional.`
-
-    let task = `Integrar as forças mapeadas para neutralizar as ameaças e alcançar o objetivo principal em 30 dias.`
+    let plan = [
+      {
+        title: 'Revisar a Tarefa de Ouro',
+        description: 'Iniciar o planejamento tático imediatamente.',
+        timeframe: '24 horas',
+      },
+    ]
 
     const url = $secrets.get('SKIP_AI_GATEWAY_URL')
     const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
@@ -42,7 +56,7 @@ NENHUM markdown, NENHUMA explicação adicional.`
             model: 'gpt-4o-mini',
             messages: [{ role: 'user', content: prompt }],
           }),
-          timeout: 30,
+          timeout: 45,
         })
 
         const json = res.json
@@ -50,34 +64,30 @@ NENHUM markdown, NENHUMA explicação adicional.`
           const content = json.choices[0].message.content.trim()
           try {
             const parsed = JSON.parse(content)
-            if (parsed.task) {
-              task = parsed.task
-            } else {
-              task = content
+            if (parsed.plan && Array.isArray(parsed.plan)) {
+              plan = parsed.plan
             }
           } catch (err) {
             const match = content.match(/\{[\s\S]*\}/)
             if (match) {
               try {
                 const parsedMatch = JSON.parse(match[0])
-                if (parsedMatch.task) task = parsedMatch.task
+                if (parsedMatch.plan && Array.isArray(parsedMatch.plan)) plan = parsedMatch.plan
               } catch (e2) {}
-            } else {
-              task = content.replace(/["*{}]/g, '').trim()
             }
           }
         } else {
           return e.internalServerError('Falha na resposta do motor de IA.')
         }
       } catch (err) {
-        $app.logger().error('AI Gateway Error (Golden Task)', 'error', err.message)
+        $app.logger().error('AI Gateway Error (Execution Plan)', 'error', err.message)
         return e.internalServerError('Não foi possível conectar ao motor de IA.')
       }
     } else {
       return e.internalServerError('Configuração de IA ausente no servidor.')
     }
 
-    return e.json(200, { task })
+    return e.json(200, { plan })
   },
   $apis.requireAuth(),
 )
