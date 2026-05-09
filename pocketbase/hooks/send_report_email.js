@@ -1,7 +1,8 @@
+// @deps nodemailer@6.9.14
 routerAdd(
   'POST',
   '/backend/v1/send-report-email',
-  (e) => {
+  async (e) => {
     const body = e.requestInfo().body
     if (!body.consultancyId || !body.email) {
       return e.badRequestError('Consultancy ID e E-mail são obrigatórios.')
@@ -17,7 +18,13 @@ routerAdd(
     const consultantName = record.getString('consultant_name') || 'Consultor'
     const clientName = record.getString('client_name') || 'Cliente'
     const tarefaOuro = record.getString('tarefa_ouro') || ''
+    const sentirData = record.get('sentir_data') || {}
     const estruturarData = record.get('estruturar_data') || {}
+    const escalarData = record.get('escalar_data') || {}
+
+    const fato = sentirData.fato || 'Não preenchido'
+    const dor = sentirData.dor || 'Não preenchido'
+    const desejo = sentirData.desejo || 'Não preenchido'
 
     const swot = estruturarData.swot || estruturarData
     const s = swot.strengths || swot.s || 'Não preenchido'
@@ -25,6 +32,31 @@ routerAdd(
     const o = swot.opportunities || swot.o || 'Não preenchido'
     const t = swot.threats || swot.t || 'Não preenchido'
     const goldenTask = tarefaOuro || estruturarData.goldenTask || 'Não preenchido'
+
+    const plan = Array.isArray(escalarData) ? escalarData : escalarData.plan || []
+    const microTarefa = escalarData.microTarefa || ''
+
+    let escalarHtml = '<p>Não preenchido</p>'
+    if (plan && plan.length > 0 && plan.some((p) => p.selected)) {
+      escalarHtml = plan
+        .filter((p) => p.selected)
+        .map(
+          (p) => `
+        <div style="background-color: #f1f8ff; padding: 15px; border-left: 4px solid #004a8f; margin-bottom: 10px;">
+          <h4 style="margin: 0 0 5px 0; color: #004a8f;">${p.title} <span style="font-size: 12px; background: #e0f0ff; padding: 2px 6px; border-radius: 10px; font-weight: normal; margin-left: 10px;">${p.timeframe}</span></h4>
+          <p style="margin: 0; font-size: 14px;">${p.description}</p>
+        </div>
+      `,
+        )
+        .join('')
+    } else if (microTarefa) {
+      escalarHtml = `
+        <div style="background-color: #f1f8ff; padding: 15px; border-left: 4px solid #004a8f; margin-bottom: 10px;">
+          <h4 style="margin: 0 0 5px 0; color: #004a8f;">Micro-Tarefa 24h</h4>
+          <p style="margin: 0; font-size: 14px;">${microTarefa}</p>
+        </div>
+      `
+    }
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -41,6 +73,28 @@ routerAdd(
             <tr>
               <td><strong>Cliente:</strong> ${clientName}</td>
               <td><strong>Consultor:</strong> ${consultantName}</td>
+            </tr>
+          </table>
+
+          <h3 style="color: #004a8f; border-bottom: 1px solid #eee; padding-bottom: 5px;">Sentir (Diagnóstico)</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <tr>
+              <td style="padding: 10px; background-color: #f9f9f9; border: 1px solid #eee;">
+                <strong>Fato:</strong><br/>
+                <span style="font-size: 14px;">${fato}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; background-color: #f9f9f9; border: 1px solid #eee;">
+                <strong>Dor:</strong><br/>
+                <span style="font-size: 14px;">${dor}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; background-color: #f9f9f9; border: 1px solid #eee;">
+                <strong>Desejo:</strong><br/>
+                <span style="font-size: 14px;">${desejo}</span>
+              </td>
             </tr>
           </table>
 
@@ -69,9 +123,12 @@ routerAdd(
           </table>
 
           <h3 style="color: #004a8f; border-bottom: 1px solid #eee; padding-bottom: 5px;">Tarefa de Ouro</h3>
-          <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #f2a900;">
+          <div style="background-color: #fff8e1; padding: 15px; border-left: 4px solid #f2a900; margin-bottom: 20px;">
             <p style="margin: 0;">${goldenTask}</p>
           </div>
+
+          <h3 style="color: #004a8f; border-bottom: 1px solid #eee; padding-bottom: 5px;">Escalar (Execução)</h3>
+          ${escalarHtml}
 
           <p style="margin-top: 30px; font-size: 12px; color: #777; text-align: center;">
             Gerado via Plataforma Consultoria Express Senac | Tempo de Intervenção: 20 min
@@ -81,17 +138,34 @@ routerAdd(
     `
 
     try {
-      const message = new MailerMessage({
-        from: {
-          address: $app.settings().meta.senderAddress || 'noreply@senac.br',
-          name: $app.settings().meta.senderName || 'Consultoria Express Senac',
+      const nodemailer = require('nodemailer')
+
+      const host = $secrets.get('SMTP_HOST') || $secrets.get('HOST')
+      const portStr = $secrets.get('SMTP_PORT') || $secrets.get('PORTA')
+      const port = portStr ? Number(portStr) : 587
+      const user = $secrets.get('SMTP_USER') || $secrets.get('USER')
+      const pass = $secrets.get('SMTP_PASSWORD') || $secrets.get('PASSWORD')
+
+      if (!host || !user || !pass) {
+        throw new Error('Configurações de SMTP ausentes nos Secrets da instância.')
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: host,
+        port: port,
+        secure: port === 465,
+        auth: {
+          user: user,
+          pass: pass,
         },
-        to: [{ address: body.email }],
+      })
+
+      await transporter.sendMail({
+        from: '"Consultoria Express Senac" <noreply@senac.br>',
+        to: body.email,
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
-
-      $app.newMailClient().send(message)
 
       $app
         .logger()
