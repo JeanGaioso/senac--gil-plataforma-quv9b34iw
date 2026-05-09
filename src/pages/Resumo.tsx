@@ -48,22 +48,18 @@ export default function ResumoPage() {
       }
     } catch (e: any) {
       console.error(e)
-      const errorMsg = e.response?.message || e.message || ''
-      const detailMsg = e.response?.data?.error?.message || ''
-      if (
-        errorMsg.includes('SMTP') ||
-        errorMsg.includes('credenciais') ||
-        errorMsg.includes('ausentes') ||
-        errorMsg.includes('autenticação')
-      ) {
-        toast({
-          title: 'Erro de Configuração de E-mail',
-          description: detailMsg ? `${errorMsg} (${detailMsg})` : errorMsg,
-          variant: 'destructive',
-        })
-      } else {
-        toast({ title: 'Erro ao enviar e-mail', description: errorMsg, variant: 'destructive' })
-      }
+      const errorMsg = e.response?.message || e.message || 'Erro ao enviar e-mail'
+      const detailMsg =
+        e.response?.data?.smtp?.message ||
+        e.response?.data?.validation?.message ||
+        e.response?.data?.consultancy?.message ||
+        ''
+
+      toast({
+        title: errorMsg,
+        description: detailMsg ? String(detailMsg) : 'Verifique os logs ou a conexão SMTP.',
+        variant: 'destructive',
+      })
     } finally {
       setSendingEmail(false)
     }

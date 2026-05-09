@@ -6,14 +6,18 @@ routerAdd(
     const mailer = require(pkg)
     const body = e.requestInfo().body
     if (!body.consultancyId || !body.email) {
-      return e.badRequestError('Consultancy ID e E-mail são obrigatórios.')
+      return e.badRequestError('Invalid Parameters', {
+        validation: 'Consultancy ID e E-mail são obrigatórios.',
+      })
     }
 
     let record
     try {
       record = $app.findRecordById('consultancies', body.consultancyId)
     } catch (err) {
-      return e.notFoundError('Consultoria não encontrada.')
+      return e.notFoundError('Data Not Found', {
+        consultancy: 'Consultoria não encontrada no banco de dados.',
+      })
     }
 
     const consultantName = record.getString('consultant_name') || 'Consultor'
@@ -144,7 +148,9 @@ routerAdd(
     const pass = $secrets.get('PASSWORD')
 
     if (!host || !user || !pass) {
-      return e.badRequestError('Configurações de SMTP ausentes nos Secrets do projeto.')
+      return e.badRequestError('Configuração Ausente', {
+        smtp: 'HOST, USER ou PASSWORD não configurados nos Secrets.',
+      })
     }
 
     try {
@@ -158,6 +164,8 @@ routerAdd(
         html: html,
       })
 
+      // O cliente SMTP interno do PocketBase avalia a porta automaticamente:
+      // se port === 465, usa SSL (tls.Dial). Se 587, usa STARTTLS via net/smtp.
       const client = new mailer.SmtpClient({
         host: host,
         port: port,
@@ -179,8 +187,38 @@ routerAdd(
 
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
     } catch (err) {
-      $app.logger().error('Erro ao enviar email SMTP', 'error', err.message || String(err))
-      return e.badRequestError('Falha na autenticação ou conexão SMTP.', { error: err.message })
+      const errMsg = err ? err.message || String(err) : 'Erro desconhecido'
+      $app.logger().error('Erro ao enviar email SMTP', 'error', errMsg)
+
+      let errorCategory = 'SMTP Dispatch Error'
+      const lowerErr = errMsg.toLowerCase()
+
+      if (
+        lowerErr.includes('auth') ||
+        lowerErr.includes('credentials') ||
+        lowerErr.includes('login') ||
+        lowerErr.includes('535') ||
+        lowerErr.includes('username') ||
+        lowerErr.includes('password')
+      ) {
+        errorCategory = 'Authentication Failed'
+      } else if (lowerErr.includes('timeout') || lowerErr.includes('deadline')) {
+        errorCategory = 'Connection Timeout'
+      } else if (
+        lowerErr.includes('connection refused') ||
+        lowerErr.includes('no such host') ||
+        lowerErr.includes('network is unreachable')
+      ) {
+        errorCategory = 'Connection Refused'
+      } else if (
+        lowerErr.includes('tls') ||
+        lowerErr.includes('certificate') ||
+        lowerErr.includes('handshake')
+      ) {
+        errorCategory = 'SSL/TLS Error'
+      }
+
+      return e.badRequestError(errorCategory, { smtp: errMsg })
     }
   },
   $apis.requireAuth(),
