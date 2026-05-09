@@ -3,9 +3,11 @@ routerAdd(
   '/backend/v1/generate-golden-tasks',
   (e) => {
     const body = e.requestInfo().body || {}
-    const swot = body.swot || {}
+    const swot = body.swot || (body.sentir_data && body.sentir_data.swot) || body.sentir_data || {}
+    const sentirData = body.sentir_data ? JSON.stringify(body.sentir_data) : 'Não informado'
 
     const prompt = `Você é um consultor estratégico Sênior. Sua tarefa é criar a "Tarefa de Ouro" (Golden Task) para um cliente.
+Contexto Adicional (Sentir): ${sentirData}
 Análise SWOT:
 - Forças: ${swot.strengths || 'Não informado'}
 - Fraquezas: ${swot.weaknesses || 'Não informado'}
@@ -21,10 +23,13 @@ NENHUM markdown, NENHUMA explicação adicional.`
 
     let task = `Integrar as forças mapeadas para neutralizar as ameaças e alcançar o objetivo principal em 30 dias.`
 
-    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
-    const baseUrl = $secrets.get('SKIP_AI_GATEWAY_URL')
+    const apiKey = $secrets.get('OPENAI_API_KEY') || $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+    const baseUrl =
+      $secrets.get('OPENAI_API_URL') ||
+      $secrets.get('SKIP_AI_GATEWAY_URL') ||
+      'https://api.openai.com/v1'
 
-    if (!apiKey || !baseUrl) {
+    if (!apiKey) {
       return e.internalServerError('Configuração de IA ausente no servidor.')
     }
 

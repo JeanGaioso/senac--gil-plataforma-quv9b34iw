@@ -35,10 +35,13 @@ A primeira ação DEVE ser uma micro-tarefa para as próximas 24 horas.`
       },
     ]
 
-    const apiKey = $secrets.get('SKIP_AI_GATEWAY_API_KEY')
-    const baseUrl = $secrets.get('SKIP_AI_GATEWAY_URL')
+    const apiKey = $secrets.get('OPENAI_API_KEY') || $secrets.get('SKIP_AI_GATEWAY_API_KEY')
+    const baseUrl =
+      $secrets.get('OPENAI_API_URL') ||
+      $secrets.get('SKIP_AI_GATEWAY_URL') ||
+      'https://api.openai.com/v1'
 
-    if (!apiKey || !baseUrl) {
+    if (!apiKey) {
       return e.internalServerError('Configuração de IA ausente no servidor.')
     }
 
