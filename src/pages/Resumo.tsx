@@ -110,10 +110,25 @@ export default function ResumoPage() {
 
       <div class="section">
         <h2 class="text-secondary"><span class="bg-secondary">3</span> Escalar (Execução)</h2>
-        <div class="box-secondary">
-          <h3 class="text-secondary">Micro-Tarefa 24h</h3>
-          <p>${session.microTarefa || 'Não preenchido'}</p>
-        </div>
+        ${
+          (session.plan || [])
+            .filter((p: any) => p.selected)
+            .map(
+              (p: any) => `
+          <div class="box-secondary">
+            <h3 class="text-secondary">${p.title} (${p.timeframe})</h3>
+            <p>${p.description}</p>
+          </div>
+        `,
+            )
+            .join('') ||
+          `
+          <div class="box-secondary">
+            <h3 class="text-secondary">Micro-Tarefa 24h</h3>
+            <p>${session.microTarefa || 'Não preenchido'}</p>
+          </div>
+        `
+        }
       </div>
     `
 
@@ -279,13 +294,38 @@ export default function ResumoPage() {
                 </span>
                 Escalar (Execução)
               </h3>
-              <div className="bg-secondary/10 rounded-lg p-4 print:p-2.5 border-l-4 border-secondary">
-                <h4 className="text-base print:text-[12px] font-bold text-secondary flex items-center gap-2 mb-1.5 print:mb-1">
-                  <RefreshCcw className="w-4 h-4 print:w-3 print:h-3" /> Micro-Tarefa 24h
-                </h4>
-                <p className="text-sm print:text-[11px] text-gray-900 font-bold whitespace-pre-wrap leading-tight">
-                  {session.microTarefa || 'Não preenchido'}
-                </p>
+              <div className="grid grid-cols-1 gap-4 print:gap-2">
+                {session.plan && session.plan.filter((p: any) => p.selected).length > 0 ? (
+                  session.plan
+                    .filter((p: any) => p.selected)
+                    .map((p: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-secondary/10 rounded-lg p-4 print:p-2.5 border-l-4 border-secondary"
+                      >
+                        <h4 className="text-base print:text-[12px] font-bold text-secondary flex items-center justify-between gap-2 mb-1.5 print:mb-1">
+                          <span className="flex items-center gap-2">
+                            <RefreshCcw className="w-4 h-4 print:w-3 print:h-3" /> {p.title}
+                          </span>
+                          <span className="text-xs print:text-[10px] bg-secondary/20 px-2 py-0.5 rounded-full">
+                            {p.timeframe}
+                          </span>
+                        </h4>
+                        <p className="text-sm print:text-[11px] text-gray-900 font-bold whitespace-pre-wrap leading-tight">
+                          {p.description}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <div className="bg-secondary/10 rounded-lg p-4 print:p-2.5 border-l-4 border-secondary">
+                    <h4 className="text-base print:text-[12px] font-bold text-secondary flex items-center gap-2 mb-1.5 print:mb-1">
+                      <RefreshCcw className="w-4 h-4 print:w-3 print:h-3" /> Micro-Tarefa 24h
+                    </h4>
+                    <p className="text-sm print:text-[11px] text-gray-900 font-bold whitespace-pre-wrap leading-tight">
+                      {session.microTarefa || 'Não preenchido'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
