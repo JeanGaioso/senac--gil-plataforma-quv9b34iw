@@ -4,16 +4,6 @@ import { useSessionStore } from '@/stores/use-session-store'
 import { sendReportEmail } from '@/services/consultancies'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { Printer, RefreshCcw, Briefcase, FileText, Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
@@ -23,8 +13,6 @@ export default function ResumoPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  const [emailOpen, setEmailOpen] = useState(false)
-  const [clientEmail, setClientEmail] = useState('')
   const [sendingEmail, setSendingEmail] = useState(false)
 
   const handleNewSession = () => {
@@ -33,11 +21,6 @@ export default function ResumoPage() {
   }
 
   const handleSendEmail = async () => {
-    if (!clientEmail) {
-      toast({ title: 'E-mail obrigatório', variant: 'destructive' })
-      return
-    }
-
     if (!session.consultancyId) {
       toast({
         title: 'Cannot send report: Consultancy data is incomplete.',
@@ -66,9 +49,8 @@ export default function ResumoPage() {
 
     setSendingEmail(true)
     try {
-      await sendReportEmail(session.consultancyId, clientEmail)
-      toast({ title: `Report sent successfully to the client.` })
-      setEmailOpen(false)
+      await sendReportEmail(session.consultancyId)
+      toast({ title: 'Relatório enviado com sucesso para seu e-mail!' })
     } catch (e: any) {
       console.error(e)
       const errorMsg = e.response?.message || e.message || 'Erro ao enviar e-mail'
@@ -95,10 +77,10 @@ export default function ResumoPage() {
         })
       } else {
         toast({
-          title: errorMsg,
+          title: 'Falha ao enviar o relatório. Por favor, tente novamente.',
           description: detailMsg
             ? `${String(detailMsg)}`
-            : 'Verifique o Bug Scanner ou a conexão SMTP.',
+            : 'Verifique o console ou a conexão SMTP.',
           variant: 'destructive',
         })
       }
@@ -163,11 +145,19 @@ export default function ResumoPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setEmailOpen(true)}
-              disabled={!session.consultancyId}
+              onClick={handleSendEmail}
+              disabled={!session.consultancyId || sendingEmail}
               className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
             >
-              <Mail className="mr-2 w-4 h-4" /> Enviar E-mail
+              {sendingEmail ? (
+                <>
+                  <Loader2 className="mr-2 w-4 h-4 animate-spin" /> Enviando...
+                </>
+              ) : (
+                <>
+                  <Mail className="mr-2 w-4 h-4" /> Enviar para meu E-mail
+                </>
+              )}
             </Button>
             <Button
               onClick={handleNewSession}
@@ -367,50 +357,6 @@ export default function ResumoPage() {
           Gerado via Plataforma Consultoria Express Senac | Tempo de Intervenção: 20 min
         </div>
       </div>
-
-      <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Enviar relatório por E-mail</DialogTitle>
-            <DialogDescription>
-              Insira o e-mail do cliente para enviar o relatório da consultoria em PDF.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email" className="text-left">
-                E-mail do Cliente
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={clientEmail}
-                onChange={(e) => setClientEmail(e.target.value)}
-                placeholder="cliente@exemplo.com"
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEmailOpen(false)} disabled={sendingEmail}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail}>
-              {sendingEmail ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Enviar E-mail
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

@@ -10,9 +10,20 @@ routerAdd(
         validation: 'Payload inválido ou malformado.',
       })
     }
-    if (!body.consultancyId || !body.email) {
+    if (!body.consultancyId) {
       return e.badRequestError('Invalid Parameters', {
-        validation: 'Consultancy ID e E-mail são obrigatórios.',
+        validation: 'Consultancy ID é obrigatório.',
+      })
+    }
+
+    let targetEmail = body.email
+    if (e.auth) {
+      targetEmail = e.auth.getString('email') || targetEmail
+    }
+
+    if (!targetEmail) {
+      return e.badRequestError('Invalid Parameters', {
+        validation: 'E-mail de destino não encontrado.',
       })
     }
 
@@ -186,7 +197,7 @@ routerAdd(
           address: senderEmail,
           name: 'Consultoria Express Senac',
         },
-        to: [{ address: body.email }],
+        to: [{ address: targetEmail }],
         subject: 'Seu Resumo de Consultoria Express Senac',
         html: html,
       })
@@ -209,7 +220,7 @@ routerAdd(
           'consultancyId',
           body.consultancyId,
           'to',
-          body.email,
+          targetEmail,
         )
 
       return e.json(200, { success: true, message: 'E-mail enviado com sucesso' })
