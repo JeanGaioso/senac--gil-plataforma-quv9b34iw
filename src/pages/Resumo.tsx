@@ -41,14 +41,27 @@ export default function ResumoPage() {
     try {
       if (session.consultancyId) {
         await sendReportEmail(session.consultancyId, clientEmail)
+        toast({ title: `Relatório enviado com sucesso para ${clientEmail}!` })
+        setEmailOpen(false)
       } else {
         throw new Error('Consultancy ID not found')
       }
-      toast({ title: 'E-mail enviado com sucesso!' })
-      setEmailOpen(false)
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      toast({ title: 'Erro ao enviar e-mail', variant: 'destructive' })
+      const errorMsg = e.response?.message || e.message || ''
+      if (
+        errorMsg.includes('Secrets') ||
+        errorMsg.includes('SMTP') ||
+        errorMsg.includes('credenciais')
+      ) {
+        toast({
+          title: 'Erro de Configuração SMTP',
+          description: 'Por favor, verifique as credenciais SMTP na aba Secrets do projeto.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({ title: 'Erro ao enviar e-mail', description: errorMsg, variant: 'destructive' })
+      }
     } finally {
       setSendingEmail(false)
     }
@@ -343,11 +356,16 @@ export default function ResumoPage() {
             </Button>
             <Button onClick={handleSendEmail} disabled={sendingEmail}>
               {sendingEmail ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
               ) : (
-                <Mail className="w-4 h-4 mr-2" />
+                <>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Enviar E-mail
+                </>
               )}
-              Enviar E-mail
             </Button>
           </DialogFooter>
         </DialogContent>
